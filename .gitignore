@@ -1,0 +1,4 @@
+build/
+a.out
+*.wasm
+.DS_Store
