@@ -23,7 +23,7 @@ struct storage_class {};
 
 } // namespace cerridwen
 
-#if defined(__cpp_reflection)
+#if defined(__cpp_reflection) || defined(__cpp_impl_reflection)
     #define CERRIDWEN_EXPORT_WASM [[=cerridwen::export_wasm{}]]
     #define CERRIDWEN_EXPORT_HOST [[=cerridwen::export_host{}]]
     #define CERRIDWEN_THREAD_SAFE [[=cerridwen::thread_safe{}]]

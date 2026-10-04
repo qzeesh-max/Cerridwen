@@ -1,9 +1,14 @@
 #pragma once
 
+#include <cerridwen/errors.hpp>
+#include <cstdint>
 #include <string>
 #include <memory>
+#include <mutex>
+#include <stdexcept>
 #include <unordered_map>
 #include <iostream>
+#include <vector>
 
 namespace cerridwen {
 
@@ -19,6 +24,10 @@ public:
     virtual void write_memory(uint32_t wasm_ptr, const void* src, size_t size) { throw std::runtime_error("Not implemented"); }
     virtual uint32_t allocate(size_t size) { throw std::runtime_error("Not implemented"); }
     virtual void deallocate(uint32_t ptr) { throw std::runtime_error("Not implemented"); }
+
+    // Linear memory introspection (bytes currently committed / host-imposed ceiling, 0 = none).
+    virtual size_t memory_bytes() const { throw std::runtime_error("Not implemented"); }
+    virtual size_t memory_limit() const { return 0; }
     
     // Generic argument calls
     virtual void call_args(const std::string& func_name, const std::vector<std::string>& args) { throw std::runtime_error("Not implemented"); }

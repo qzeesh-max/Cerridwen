@@ -24,12 +24,11 @@ template <typename T>
 consteval bool member_has_annotation(std::meta::info mem) {
     for (auto annot : std::meta::annotations_of(mem)) {
         auto t = std::meta::type_of(annot);
+        if (t == ^^T) return true;
         std::string_view name = std::meta::display_string_of(t);
-        std::string_view target_name = std::meta::display_string_of(^^T);
-        if (name == target_name || 
-           (name.starts_with("const ") && name.substr(6) == target_name)) {
-            return true;
-        }
+        std::string_view target_name = std::meta::identifier_of(^^T); // get just the name
+        // string find target name in the type name
+        if (name.find(target_name) != std::string_view::npos) return true;
     }
     return false;
 }
