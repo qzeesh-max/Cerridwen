@@ -34,7 +34,7 @@ public:
     virtual int call_args_int(const std::string& func_name, const std::vector<std::string>& args) { throw std::runtime_error("Not implemented"); }
 
     template <typename BaseClass>
-    std::unique_ptr<BaseClass> instantiate(const std::string& className) {
+    std::unique_ptr<BaseClass> instantiate(std::string_view className) {
         std::cout << "[WasmInstance] Mock instantiating class: " << className << "\n";
         return nullptr;
     }
@@ -43,7 +43,7 @@ public:
 // Plugin Manager to load and manage WASM modules
 class PluginManager {
 public:
-    std::shared_ptr<WasmInstance> load_plugin(const std::string& path) {
+    std::shared_ptr<WasmInstance> load_plugin(std::string_view path) {
         // Mock loading
         std::cout << "[PluginManager] Loading mock plugin: " << path << "\n";
         return std::make_shared<WasmInstance>();
