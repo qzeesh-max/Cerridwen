@@ -1,7 +1,7 @@
 # Cerridwen
 
 <p align="center">
-  <img src="assets/cerridwen_logo.jpg" alt="Cerridwen Framework Logo" width="300"/>
+  <img src="assets/cerridwen_logo.jpeg" alt="Cerridwen Framework Logo" width="300"/>
 </p>
 
 Cerridwen is a modern, high-performance C++26 framework designed to securely expose C++ classes to WebAssembly (WASM) and allow WebAssembly plugins to be loaded seamlessly within native applications. By leveraging C++26 reflection (`std::meta`), Cerridwen automatically generates bindings, trampolines, and proxy classes without requiring external AST parsers or boilerplate code.
