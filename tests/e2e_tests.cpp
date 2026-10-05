@@ -235,6 +235,76 @@ TEST(CerridwenE2E, ContainerMarshalling) {
     EXPECT_EQ(um[100], 200);
 }
 
+TEST(CerridwenE2E, ContainerStringMarshalling) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("ContainerPlugin_create");
+    ContainerPlugin_Trampoline plugin;
+    plugin._wasm_instance = instance.get();
+    plugin._wasm_ptr = ptr;
+
+    std::vector<std::string> vec = {"hello", "world"};
+    std::map<std::string, std::string> m = {{"key1", "val1"}, {"key2", "val2"}};
+    std::unordered_map<int, std::string> um = {{1, "val1"}, {2, "val2"}};
+
+    plugin.process_string_containers(vec, m, um);
+
+    EXPECT_EQ(vec.size(), 3);
+    EXPECT_EQ(vec[0], "hello_plugin");
+    EXPECT_EQ(vec[1], "world_plugin");
+    EXPECT_EQ(vec[2], "new_item");
+
+    EXPECT_EQ(m.size(), 3);
+    EXPECT_EQ(m["key1_plugin"], "val1_plugin");
+    EXPECT_EQ(m["key2_plugin"], "val2_plugin");
+    EXPECT_EQ(m["new_key"], "new_value");
+
+    EXPECT_EQ(um.size(), 3);
+    EXPECT_EQ(um[1], "val1_plugin");
+    EXPECT_EQ(um[2], "val2_plugin");
+    EXPECT_EQ(um[100], "new_value");
+}
+
+TEST(CerridwenE2E, PluginCrashGracefulHandling) {
+    auto instance = std::make_unique<cerridwen::Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("MathPlugin_create");
+    MathPlugin_Trampoline proxy;
+    proxy._wasm_instance = instance.get();
+    proxy._wasm_ptr = ptr;
+    
+    // Test that the framework gracefully handles the crash and throws a MemoryAccessException
+    EXPECT_THROW(proxy.crash_memory_access(), cerridwen::MemoryAccessException);
+    
+    // The plugin instance is still alive and usable after a memory access trap!
+    // Ensure that further calls still work cleanly.
+    EXPECT_EQ(proxy.multiply(1, 2), 2);
+}
+
+TEST(CerridwenE2E, CrossDomainAtomic) {
+    auto instance = std::make_unique<cerridwen::Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("MathPlugin_create");
+    MathPlugin_Trampoline proxy;
+    proxy._wasm_instance = instance.get();
+    proxy._wasm_ptr = ptr;
+    
+    // Allocate the atomic inside the WASM memory directly
+    uint32_t atomic_ptr = instance->allocate(sizeof(int32_t));
+    instance->write_memory(atomic_ptr, "\0\0\0\0", 4);
+    
+    cerridwen::HostCrossDomainAtomic<int32_t> atom(instance.get(), atomic_ptr);
+    
+    EXPECT_EQ(atom.load(), 0);
+    
+    // Host updates it
+    atom.store(10);
+    EXPECT_EQ(atom.load(), 10);
+    
+    // Plugin updates it
+    proxy.atomic_increment(atomic_ptr);
+    EXPECT_EQ(atom.load(), 11);
+    
+    instance->deallocate(atomic_ptr);
+}
+
 TEST(CerridwenE2E, ContainerMarshallingBenchmark) {
     auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
     uint32_t ptr = instance->call_create("ContainerPlugin_create");

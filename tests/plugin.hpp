@@ -17,6 +17,8 @@
 #include "plugin_host_proxies.hpp"
 #endif
 
+#include "cerridwen/cross_domain_atomic.hpp"
+
 // =====================================================================================
 // Basic plugin: counter state (marshalled by value), upcall into a host class.
 // =====================================================================================
@@ -26,6 +28,18 @@ struct CERRIDWEN_EXPORT_WASM CERRIDWEN_THREAD_SAFE MathPlugin {
     virtual void increment() { this->counter++; }
     virtual void decrement() { this->counter--; }
     virtual int multiply(int a, int b) { return a * b; }
+    
+    // CrossDomainAtomic test
+    virtual void atomic_increment(uint32_t atom_ptr) {
+        auto* atom = reinterpret_cast<cerridwen::CrossDomainAtomic<int32_t>*>(atom_ptr);
+        atom->fetch_add(1);
+    }
+    
+    // Crashes the plugin by accessing out of bounds memory
+    virtual void crash_memory_access() {
+        volatile int* bad_ptr = reinterpret_cast<volatile int*>(0x12345678);
+        *bad_ptr = 42;
+    }
 
     // Upcall test
     virtual void do_logging(uint64_t logger_ptr);
@@ -352,6 +366,7 @@ struct CERRIDWEN_EXPORT_WASM ContainerPlugin {
 
     virtual void process_containers(std::vector<int>& vec, std::map<int, int>& m);
     virtual void process_other_containers(std::set<int>& s, std::list<int>& l, std::deque<int>& d, std::unordered_set<int>& us, std::unordered_map<int, int>& um);
+    virtual void process_string_containers(std::vector<std::string>& vec, std::map<std::string, std::string>& m, std::unordered_map<int, std::string>& um);
     virtual void process_generic_refs(std::variant<int, float>& v, DummyVisitor& visitor, MyFunctor& functor);
     virtual void process_shared_ptr(std::shared_ptr<int>& ptr);
     virtual void crash_memory_access();
@@ -390,6 +405,23 @@ inline void ContainerPlugin::process_other_containers(std::set<int>& s, std::lis
     um[100] = 200;
 }
 
+inline void ContainerPlugin::process_string_containers(std::vector<std::string>& vec, std::map<std::string, std::string>& m, std::unordered_map<int, std::string>& um) {
+    for (auto& v : vec) v += "_plugin";
+    vec.push_back("new_item");
+    
+    std::map<std::string, std::string> new_m;
+    for (auto& pair : m) {
+        new_m[pair.first + "_plugin"] = pair.second + "_plugin";
+    }
+    new_m["new_key"] = "new_value";
+    m = std::move(new_m);
+    
+    for (auto& pair : um) {
+        pair.second += "_plugin";
+    }
+    um[100] = "new_value";
+}
+
 inline void ContainerPlugin::process_generic_refs(std::variant<int, float>& v, DummyVisitor& visitor, MyFunctor& functor) {
     if (std::holds_alternative<int>(v)) {
         int val = std::get<int>(v);
@@ -418,6 +450,7 @@ inline void ContainerPlugin::crash_memory_access() {
 #else
 inline void ContainerPlugin::process_containers(std::vector<int>&, std::map<int, int>&) {}
 inline void ContainerPlugin::process_other_containers(std::set<int>&, std::list<int>&, std::deque<int>&, std::unordered_set<int>&, std::unordered_map<int, int>&) {}
+inline void ContainerPlugin::process_string_containers(std::vector<std::string>&, std::map<std::string, std::string>&, std::unordered_map<int, std::string>&) {}
 inline void ContainerPlugin::process_generic_refs(std::variant<int, float>&, DummyVisitor&, MyFunctor&) {}
 inline void ContainerPlugin::process_shared_ptr(std::shared_ptr<int>&) {}
 inline void ContainerPlugin::crash_memory_access() {}

@@ -68,7 +68,8 @@ void generate_wasm_trampoline(std::ostream& out, std::string_view class_name) {
     out << "#include <mutex>\n";
     out << "#include <stdexcept>\n";
     out << "#include <cerridwen/errors.hpp>\n";
-    out << "#include <cerridwen/plugin_manager.hpp>\n\n";
+    out << "#include <cerridwen/plugin_manager.hpp>\n";
+    out << "#include \"cerridwen/serializer.hpp\"\n\n";
     out << "class " << class_name << "_Trampoline : public " << class_name << " {\n";
     out << "public:\n";
     out << "    cerridwen::WasmInstance* _wasm_instance = nullptr;\n";
@@ -166,13 +167,14 @@ void generate_wasm_trampoline(std::ostream& out, std::string_view class_name) {
                         for (size_t i = 0; i < param_names.size(); i++) {
                             std::string arg_name = param_names[i];
                             std::string p_type = param_types[i];
-                            if (p_type.find("std::vector") != std::string::npos && p_type.find("&") != std::string::npos) {
+                            if (p_type.find("std::") != std::string::npos && p_type.find("&") != std::string::npos && p_type.find("shared_ptr") == std::string::npos) {
                                 serialize_pre_call += 
-                                    "        using ValT_" + arg_name + " = std::remove_reference_t<decltype(" + arg_name + ")>::value_type;\n"
+                                    "        cerridwen::Buffer _buf_" + arg_name + ";\n"
+                                    "        cerridwen::serialize(_buf_" + arg_name + ", " + arg_name + ");\n"
                                     "        uint32_t " + arg_name + "_struct = _wasm_instance->allocate(8);\n"
-                                    "        uint32_t " + arg_name + "_data = _wasm_instance->allocate(" + arg_name + ".size() * sizeof(ValT_" + arg_name + "));\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_data, " + arg_name + ".data(), " + arg_name + ".size() * sizeof(ValT_" + arg_name + "));\n"
-                                    "        uint32_t " + arg_name + "_len = " + arg_name + ".size();\n"
+                                    "        uint32_t " + arg_name + "_data = _wasm_instance->allocate(_buf_" + arg_name + ".data.size());\n"
+                                    "        _wasm_instance->write_memory(" + arg_name + "_data, _buf_" + arg_name + ".data.data(), _buf_" + arg_name + ".data.size());\n"
+                                    "        uint32_t " + arg_name + "_len = _buf_" + arg_name + ".data.size();\n"
                                     "        _wasm_instance->write_memory(" + arg_name + "_struct, &" + arg_name + "_data, 4);\n"
                                     "        _wasm_instance->write_memory(" + arg_name + "_struct + 4, &" + arg_name + "_len, 4);\n"
                                     "        _args.push_back(std::to_string(" + arg_name + "_struct));\n";
@@ -182,81 +184,10 @@ void generate_wasm_trampoline(std::ostream& out, std::string_view class_name) {
                                     "        uint32_t new_" + arg_name + "_len = 0;\n"
                                     "        _wasm_instance->read_memory(" + arg_name + "_struct, &new_" + arg_name + "_data, 4);\n"
                                     "        _wasm_instance->read_memory(" + arg_name + "_struct + 4, &new_" + arg_name + "_len, 4);\n"
-                                    "        " + arg_name + ".resize(new_" + arg_name + "_len);\n"
-                                    "        _wasm_instance->read_memory(new_" + arg_name + "_data, " + arg_name + ".data(), new_" + arg_name + "_len * sizeof(ValT_" + arg_name + "));\n"
-                                    "        _wasm_instance->deallocate(" + arg_name + "_struct);\n"
-                                    "        _wasm_instance->deallocate(" + arg_name + "_data);\n"
-                                    "        if (new_" + arg_name + "_data != " + arg_name + "_data) _wasm_instance->deallocate(new_" + arg_name + "_data);\n";
-                            } else if ((p_type.find("std::map") != std::string::npos || p_type.find("std::unordered_map") != std::string::npos) && p_type.find("&") != std::string::npos) {
-                                serialize_pre_call += 
-                                    "        using K_" + arg_name + " = std::remove_reference_t<decltype(" + arg_name + ")>::key_type;\n"
-                                    "        using V_" + arg_name + " = std::remove_reference_t<decltype(" + arg_name + ")>::mapped_type;\n"
-                                    "        using PairT_" + arg_name + " = std::pair<K_" + arg_name + ", V_" + arg_name + ">;\n"
-                                    "        std::vector<PairT_" + arg_name + "> " + arg_name + "_flat(" + arg_name + ".begin(), " + arg_name + ".end());\n"
-                                    "        uint32_t " + arg_name + "_struct = _wasm_instance->allocate(8);\n"
-                                    "        uint32_t " + arg_name + "_data = _wasm_instance->allocate(" + arg_name + "_flat.size() * sizeof(PairT_" + arg_name + "));\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_data, " + arg_name + "_flat.data(), " + arg_name + "_flat.size() * sizeof(PairT_" + arg_name + "));\n"
-                                    "        uint32_t " + arg_name + "_len = " + arg_name + "_flat.size();\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_struct, &" + arg_name + "_data, 4);\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_struct + 4, &" + arg_name + "_len, 4);\n"
-                                    "        _args.push_back(std::to_string(" + arg_name + "_struct));\n";
-
-                                serialize_post_call +=
-                                    "        uint32_t new_" + arg_name + "_data = 0;\n"
-                                    "        uint32_t new_" + arg_name + "_len = 0;\n"
-                                    "        _wasm_instance->read_memory(" + arg_name + "_struct, &new_" + arg_name + "_data, 4);\n"
-                                    "        _wasm_instance->read_memory(" + arg_name + "_struct + 4, &new_" + arg_name + "_len, 4);\n"
-                                    "        std::vector<PairT_" + arg_name + "> new_" + arg_name + "_flat(new_" + arg_name + "_len);\n"
-                                    "        _wasm_instance->read_memory(new_" + arg_name + "_data, new_" + arg_name + "_flat.data(), new_" + arg_name + "_len * sizeof(PairT_" + arg_name + "));\n"
-                                    "        " + arg_name + ".clear();\n"
-                                    "        " + arg_name + ".insert(new_" + arg_name + "_flat.begin(), new_" + arg_name + "_flat.end());\n"
-                                    "        _wasm_instance->deallocate(" + arg_name + "_struct);\n"
-                                    "        _wasm_instance->deallocate(" + arg_name + "_data);\n"
-                                    "        if (new_" + arg_name + "_data != " + arg_name + "_data) _wasm_instance->deallocate(new_" + arg_name + "_data);\n";
-                            } else if ((p_type.find("list") != std::string::npos || p_type.find("deque") != std::string::npos) && p_type.find("&") != std::string::npos && p_type.find("std::") != std::string::npos) {
-                                serialize_pre_call += 
-                                    "        using ValT_" + arg_name + " = std::remove_reference_t<decltype(" + arg_name + ")>::value_type;\n"
-                                    "        std::vector<ValT_" + arg_name + "> " + arg_name + "_flat(" + arg_name + ".begin(), " + arg_name + ".end());\n"
-                                    "        uint32_t " + arg_name + "_struct = _wasm_instance->allocate(8);\n"
-                                    "        uint32_t " + arg_name + "_data = _wasm_instance->allocate(" + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_data, " + arg_name + "_flat.data(), " + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
-                                    "        uint32_t " + arg_name + "_len = " + arg_name + "_flat.size();\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_struct, &" + arg_name + "_data, 4);\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_struct + 4, &" + arg_name + "_len, 4);\n"
-                                    "        _args.push_back(std::to_string(" + arg_name + "_struct));\n";
-
-                                serialize_post_call +=
-                                    "        uint32_t new_" + arg_name + "_data = 0;\n"
-                                    "        uint32_t new_" + arg_name + "_len = 0;\n"
-                                    "        _wasm_instance->read_memory(" + arg_name + "_struct, &new_" + arg_name + "_data, 4);\n"
-                                    "        _wasm_instance->read_memory(" + arg_name + "_struct + 4, &new_" + arg_name + "_len, 4);\n"
-                                    "        std::vector<ValT_" + arg_name + "> new_" + arg_name + "_flat(new_" + arg_name + "_len);\n"
-                                    "        _wasm_instance->read_memory(new_" + arg_name + "_data, new_" + arg_name + "_flat.data(), new_" + arg_name + "_len * sizeof(ValT_" + arg_name + "));\n"
-                                    "        " + arg_name + ".assign(new_" + arg_name + "_flat.begin(), new_" + arg_name + "_flat.end());\n"
-                                    "        _wasm_instance->deallocate(" + arg_name + "_struct);\n"
-                                    "        _wasm_instance->deallocate(" + arg_name + "_data);\n"
-                                    "        if (new_" + arg_name + "_data != " + arg_name + "_data) _wasm_instance->deallocate(new_" + arg_name + "_data);\n";
-                            } else if ((p_type.find("set") != std::string::npos || p_type.find("unordered_set") != std::string::npos) && p_type.find("&") != std::string::npos && p_type.find("std::") != std::string::npos) {
-                                serialize_pre_call += 
-                                    "        using ValT_" + arg_name + " = std::remove_reference_t<decltype(" + arg_name + ")>::value_type;\n"
-                                    "        std::vector<ValT_" + arg_name + "> " + arg_name + "_flat(" + arg_name + ".begin(), " + arg_name + ".end());\n"
-                                    "        uint32_t " + arg_name + "_struct = _wasm_instance->allocate(8);\n"
-                                    "        uint32_t " + arg_name + "_data = _wasm_instance->allocate(" + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_data, " + arg_name + "_flat.data(), " + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
-                                    "        uint32_t " + arg_name + "_len = " + arg_name + "_flat.size();\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_struct, &" + arg_name + "_data, 4);\n"
-                                    "        _wasm_instance->write_memory(" + arg_name + "_struct + 4, &" + arg_name + "_len, 4);\n"
-                                    "        _args.push_back(std::to_string(" + arg_name + "_struct));\n";
-
-                                serialize_post_call +=
-                                    "        uint32_t new_" + arg_name + "_data = 0;\n"
-                                    "        uint32_t new_" + arg_name + "_len = 0;\n"
-                                    "        _wasm_instance->read_memory(" + arg_name + "_struct, &new_" + arg_name + "_data, 4);\n"
-                                    "        _wasm_instance->read_memory(" + arg_name + "_struct + 4, &new_" + arg_name + "_len, 4);\n"
-                                    "        std::vector<ValT_" + arg_name + "> new_" + arg_name + "_flat(new_" + arg_name + "_len);\n"
-                                    "        _wasm_instance->read_memory(new_" + arg_name + "_data, new_" + arg_name + "_flat.data(), new_" + arg_name + "_len * sizeof(ValT_" + arg_name + "));\n"
-                                    "        " + arg_name + ".clear();\n"
-                                    "        " + arg_name + ".insert(new_" + arg_name + "_flat.begin(), new_" + arg_name + "_flat.end());\n"
+                                    "        cerridwen::Buffer _out_buf_" + arg_name + ";\n"
+                                    "        _out_buf_" + arg_name + ".data.resize(new_" + arg_name + "_len);\n"
+                                    "        _wasm_instance->read_memory(new_" + arg_name + "_data, _out_buf_" + arg_name + ".data.data(), new_" + arg_name + "_len);\n"
+                                    "        cerridwen::deserialize(_out_buf_" + arg_name + ", " + arg_name + ");\n"
                                     "        _wasm_instance->deallocate(" + arg_name + "_struct);\n"
                                     "        _wasm_instance->deallocate(" + arg_name + "_data);\n"
                                     "        if (new_" + arg_name + "_data != " + arg_name + "_data) _wasm_instance->deallocate(new_" + arg_name + "_data);\n";
@@ -339,7 +270,7 @@ void generate_wasm_exports(std::ostream& out, std::string_view class_name) {
     constexpr auto type_info = ^^T;
     
     out << "// --- Generated by Cerridwen WebAssembly EXPORT Generator ---\n";
-    out << "#include <emscripten.h>\n\n";
+    out << "#include <emscripten.h>\n\n";    out << "#include \"cerridwen/serializer.hpp\"\n\n";
     out << "extern \"C\" {\n\n";
     
     if constexpr (!std::is_abstract_v<T>) {
@@ -407,79 +338,27 @@ void generate_wasm_exports(std::ostream& out, std::string_view class_name) {
                         std::string arg_name = "arg" + std::to_string(p_idx);
                         if (p_idx > 0) param_list_call += ", ";
 
-                        if (p_type.find("std::vector") != std::string::npos && p_type.find("&") != std::string::npos) {
+                        if (p_type.find("std::") != std::string::npos && p_type.find("&") != std::string::npos && p_type.find("shared_ptr") == std::string::npos) {
                             param_list_decl += ", uint32_t " + arg_name;
                             param_list_call += "local_" + arg_name;
                             
                             deserialize_pre_call +=
                                 "    using BaseT_" + arg_name + " = std::remove_reference_t<" + p_type + ">;\n"
-                                "    using ValT_" + arg_name + " = BaseT_" + arg_name + "::value_type;\n"
                                 "    uint32_t* " + arg_name + "_struct = reinterpret_cast<uint32_t*>(" + arg_name + ");\n"
-                                "    ValT_" + arg_name + "* " + arg_name + "_data = reinterpret_cast<ValT_" + arg_name + "*>(" + arg_name + "_struct[0]);\n"
+                                "    uint32_t " + arg_name + "_data = " + arg_name + "_struct[0];\n"
                                 "    uint32_t " + arg_name + "_len = " + arg_name + "_struct[1];\n"
-                                "    BaseT_" + arg_name + " local_" + arg_name + "(" + arg_name + "_data, " + arg_name + "_data + " + arg_name + "_len);\n";
+                                "    cerridwen::Buffer _buf_" + arg_name + ";\n"
+                                "    _buf_" + arg_name + ".data.assign((uint8_t*)" + arg_name + "_data, (uint8_t*)" + arg_name + "_data + " + arg_name + "_len);\n"
+                                "    BaseT_" + arg_name + " local_" + arg_name + ";\n"
+                                "    cerridwen::deserialize(_buf_" + arg_name + ", local_" + arg_name + ");\n";
                             
                             serialize_post_call +=
-                                "    ValT_" + arg_name + "* new_" + arg_name + "_data = (ValT_" + arg_name + "*) cerridwen::plugin::allocate(local_" + arg_name + ".size() * sizeof(ValT_" + arg_name + "));\n"
-                                "    std::memcpy((void*)new_" + arg_name + "_data, local_" + arg_name + ".data(), local_" + arg_name + ".size() * sizeof(ValT_" + arg_name + "));\n"
+                                "    cerridwen::Buffer _out_buf_" + arg_name + ";\n"
+                                "    cerridwen::serialize(_out_buf_" + arg_name + ", local_" + arg_name + ");\n"
+                                "    uint8_t* new_" + arg_name + "_data = (uint8_t*) cerridwen::plugin::allocate(_out_buf_" + arg_name + ".data.size());\n"
+                                "    std::memcpy(new_" + arg_name + "_data, _out_buf_" + arg_name + ".data.data(), _out_buf_" + arg_name + ".data.size());\n"
                                 "    " + arg_name + "_struct[0] = reinterpret_cast<uint32_t>(new_" + arg_name + "_data);\n"
-                                "    " + arg_name + "_struct[1] = local_" + arg_name + ".size();\n";
-                        } else if ((p_type.find("std::map") != std::string::npos || p_type.find("std::unordered_map") != std::string::npos) && p_type.find("&") != std::string::npos) {
-                            param_list_decl += ", uint32_t " + arg_name;
-                            param_list_call += "local_" + arg_name;
-                            
-                            deserialize_pre_call +=
-                                "    using BaseT_" + arg_name + " = std::remove_reference_t<" + p_type + ">;\n"
-                                "    using K_" + arg_name + " = BaseT_" + arg_name + "::key_type;\n"
-                                "    using V_" + arg_name + " = BaseT_" + arg_name + "::mapped_type;\n"
-                                "    using PairT_" + arg_name + " = std::pair<K_" + arg_name + ", V_" + arg_name + ">;\n"
-                                "    uint32_t* " + arg_name + "_struct = reinterpret_cast<uint32_t*>(" + arg_name + ");\n"
-                                "    PairT_" + arg_name + "* " + arg_name + "_data = reinterpret_cast<PairT_" + arg_name + "*>(" + arg_name + "_struct[0]);\n"
-                                "    uint32_t " + arg_name + "_len = " + arg_name + "_struct[1];\n"
-                                "    BaseT_" + arg_name + " local_" + arg_name + "(" + arg_name + "_data, " + arg_name + "_data + " + arg_name + "_len);\n";
-                            
-                            serialize_post_call +=
-                                "    std::vector<PairT_" + arg_name + "> new_" + arg_name + "_flat(local_" + arg_name + ".begin(), local_" + arg_name + ".end());\n"
-                                "    PairT_" + arg_name + "* new_" + arg_name + "_data = (PairT_" + arg_name + "*) cerridwen::plugin::allocate(new_" + arg_name + "_flat.size() * sizeof(PairT_" + arg_name + "));\n"
-                                "    std::memcpy((void*)new_" + arg_name + "_data, new_" + arg_name + "_flat.data(), new_" + arg_name + "_flat.size() * sizeof(PairT_" + arg_name + "));\n"
-                                "    " + arg_name + "_struct[0] = reinterpret_cast<uint32_t>(new_" + arg_name + "_data);\n"
-                                "    " + arg_name + "_struct[1] = new_" + arg_name + "_flat.size();\n";
-                        } else if ((p_type.find("list") != std::string::npos || p_type.find("deque") != std::string::npos) && p_type.find("&") != std::string::npos && p_type.find("std::") != std::string::npos) {
-                            param_list_decl += ", uint32_t " + arg_name;
-                            param_list_call += "local_" + arg_name;
-                            
-                            deserialize_pre_call +=
-                                "    using BaseT_" + arg_name + " = std::remove_reference_t<" + p_type + ">;\n"
-                                "    using ValT_" + arg_name + " = BaseT_" + arg_name + "::value_type;\n"
-                                "    uint32_t* " + arg_name + "_struct = reinterpret_cast<uint32_t*>(" + arg_name + ");\n"
-                                "    ValT_" + arg_name + "* " + arg_name + "_data = reinterpret_cast<ValT_" + arg_name + "*>(" + arg_name + "_struct[0]);\n"
-                                "    uint32_t " + arg_name + "_len = " + arg_name + "_struct[1];\n"
-                                "    BaseT_" + arg_name + " local_" + arg_name + "(" + arg_name + "_data, " + arg_name + "_data + " + arg_name + "_len);\n";
-                            
-                            serialize_post_call +=
-                                "    std::vector<ValT_" + arg_name + "> new_" + arg_name + "_flat(local_" + arg_name + ".begin(), local_" + arg_name + ".end());\n"
-                                "    ValT_" + arg_name + "* new_" + arg_name + "_data = (ValT_" + arg_name + "*) cerridwen::plugin::allocate(new_" + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
-                                "    std::memcpy((void*)new_" + arg_name + "_data, new_" + arg_name + "_flat.data(), new_" + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
-                                "    " + arg_name + "_struct[0] = reinterpret_cast<uint32_t>(new_" + arg_name + "_data);\n"
-                                "    " + arg_name + "_struct[1] = new_" + arg_name + "_flat.size();\n";
-                        } else if ((p_type.find("set") != std::string::npos || p_type.find("unordered_set") != std::string::npos) && p_type.find("&") != std::string::npos && p_type.find("std::") != std::string::npos) {
-                            param_list_decl += ", uint32_t " + arg_name;
-                            param_list_call += "local_" + arg_name;
-                            
-                            deserialize_pre_call +=
-                                "    using BaseT_" + arg_name + " = std::remove_reference_t<" + p_type + ">;\n"
-                                "    using ValT_" + arg_name + " = BaseT_" + arg_name + "::value_type;\n"
-                                "    uint32_t* " + arg_name + "_struct = reinterpret_cast<uint32_t*>(" + arg_name + ");\n"
-                                "    ValT_" + arg_name + "* " + arg_name + "_data = reinterpret_cast<ValT_" + arg_name + "*>(" + arg_name + "_struct[0]);\n"
-                                "    uint32_t " + arg_name + "_len = " + arg_name + "_struct[1];\n"
-                                "    BaseT_" + arg_name + " local_" + arg_name + "(" + arg_name + "_data, " + arg_name + "_data + " + arg_name + "_len);\n";
-                            
-                            serialize_post_call +=
-                                "    std::vector<ValT_" + arg_name + "> new_" + arg_name + "_flat(local_" + arg_name + ".begin(), local_" + arg_name + ".end());\n"
-                                "    ValT_" + arg_name + "* new_" + arg_name + "_data = (ValT_" + arg_name + "*) cerridwen::plugin::allocate(new_" + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
-                                "    std::memcpy((void*)new_" + arg_name + "_data, new_" + arg_name + "_flat.data(), new_" + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
-                                "    " + arg_name + "_struct[0] = reinterpret_cast<uint32_t>(new_" + arg_name + "_data);\n"
-                                "    " + arg_name + "_struct[1] = new_" + arg_name + "_flat.size();\n";
+                                "    " + arg_name + "_struct[1] = _out_buf_" + arg_name + ".data.size();\n";
                         } else if (p_type.find("std::shared_ptr") != std::string::npos) {
                             param_list_decl += ", uint32_t " + arg_name;
                             param_list_call += "local_" + arg_name;
