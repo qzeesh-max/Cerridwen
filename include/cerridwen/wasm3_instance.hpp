@@ -161,6 +161,7 @@ class Wasm3Instance : public WasmInstance {
         if (pe.kind == ErrorKind::Host) throw HostException(pe.message);
         if (pe.kind == ErrorKind::Plugin) throw PluginException(pe.message);
         if (result == m3Err_memoryLimitExceeded) throw ResourceLimitError(what + ": " + result);
+        if (result == m3Err_trapOutOfBoundsMemoryAccess) throw MemoryAccessException(what + ": out of bounds memory access");
         M3ErrorInfo info;
         m3_GetErrorInfo(runtime, &info);
         std::string extra = info.message ? info.message : "";

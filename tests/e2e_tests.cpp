@@ -296,6 +296,26 @@ TEST(CerridwenE2E, SharedPtrMarshalling) {
     EXPECT_EQ(*s, 52);
 }
 
+TEST(CerridwenE2E, CrashMemoryAccess) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("ContainerPlugin_create");
+    ContainerPlugin_Trampoline plugin;
+    plugin._wasm_instance = instance.get();
+    plugin._wasm_ptr = ptr;
+
+    EXPECT_THROW(plugin.crash_memory_access(), MemoryAccessException);
+
+    // Make sure the instance is still usable if we just caught the exception (though state might be corrupt depending on where it crashed, the framework itself should survive).
+    // Let's create a new plugin to verify framework is clean.
+    uint32_t ptr2 = instance->call_create("ContainerPlugin_create");
+    ContainerPlugin_Trampoline plugin2;
+    plugin2._wasm_instance = instance.get();
+    plugin2._wasm_ptr = ptr2;
+    std::shared_ptr<int> s;
+    plugin2.process_shared_ptr(s);
+    EXPECT_EQ(*s, 42);
+}
+
 TEST(CerridwenE2E, MemoryLimitsAndGrowth) {
     auto initial_instance = std::make_unique<Wasm3Instance>(get_wasm_path());
     int initial_pages = initial_instance->memory_bytes() / 65536;

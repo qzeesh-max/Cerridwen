@@ -317,6 +317,7 @@ struct CERRIDWEN_EXPORT_WASM ContainerPlugin {
     virtual void process_other_containers(std::set<int>& s, std::list<int>& l, std::deque<int>& d, std::unordered_set<int>& us, std::unordered_map<int, int>& um);
     virtual void process_generic_refs(std::variant<int, float>& v, DummyVisitor& visitor, MyFunctor& functor);
     virtual void process_shared_ptr(std::shared_ptr<int>& ptr);
+    virtual void crash_memory_access();
 };
 
 #ifdef __EMSCRIPTEN__
@@ -372,9 +373,15 @@ inline void ContainerPlugin::process_shared_ptr(std::shared_ptr<int>& ptr) {
     }
 }
 
+inline void ContainerPlugin::crash_memory_access() {
+    volatile int* bad_ptr = reinterpret_cast<int*>(0x12345678);
+    *bad_ptr = 42;
+}
+
 #else
 inline void ContainerPlugin::process_containers(std::vector<int>&, std::map<int, int>&) {}
 inline void ContainerPlugin::process_other_containers(std::set<int>&, std::list<int>&, std::deque<int>&, std::unordered_set<int>&, std::unordered_map<int, int>&) {}
 inline void ContainerPlugin::process_generic_refs(std::variant<int, float>&, DummyVisitor&, MyFunctor&) {}
 inline void ContainerPlugin::process_shared_ptr(std::shared_ptr<int>&) {}
+inline void ContainerPlugin::crash_memory_access() {}
 #endif

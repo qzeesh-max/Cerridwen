@@ -29,6 +29,11 @@ struct PluginTrap : CerridwenError {
     using CerridwenError::CerridwenError;
 };
 
+// A WebAssembly memory bounds violation or out-of-bounds access.
+struct MemoryAccessException : PluginTrap {
+    using PluginTrap::PluginTrap;
+};
+
 // A resource limit imposed by the host (memory, storage) was violated.
 struct ResourceLimitError : CerridwenError {
     using CerridwenError::CerridwenError;
