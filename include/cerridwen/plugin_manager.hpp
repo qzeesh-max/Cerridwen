@@ -12,6 +12,15 @@
 
 namespace cerridwen {
 
+// Helper to share a std::shared_ptr with WASM.
+// Returns a 64-bit handle that should be passed to WASM functions expecting a SharedProxy.
+template<typename T>
+uint64_t share_to_wasm(std::shared_ptr<T> ptr) {
+    if (!ptr) return 0;
+    auto* heap_sp = new std::shared_ptr<T>(ptr);
+    return static_cast<uint64_t>(reinterpret_cast<uintptr_t>(heap_sp));
+}
+
 // Forward declaration of a WASM Instance
 class WasmInstance {
 public:

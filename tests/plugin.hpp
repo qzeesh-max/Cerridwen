@@ -147,6 +147,9 @@ struct CERRIDWEN_EXPORT_WASM Thrower {
     // Calls Calculator::add on the host (virtual dispatch into host subclasses).
     virtual int add_via_host(uint64_t calc, int a, int b);
 
+    // Uses a SharedProxy handle
+    virtual int divide_via_shared_host(uint64_t calc_handle, int a, int b);
+
     // A genuine WebAssembly trap that is not a managed exception.
     virtual void crash();
 };
@@ -154,10 +157,12 @@ struct CERRIDWEN_EXPORT_WASM Thrower {
 #ifdef __EMSCRIPTEN__
 inline int Thrower::divide_via_host(uint64_t calc, int a, int b) { Calculator_Proxy c(calc); return c.divide(a, b); }
 inline int Thrower::add_via_host(uint64_t calc, int a, int b) { Calculator_Proxy c(calc); return c.add(a, b); }
+inline int Thrower::divide_via_shared_host(uint64_t calc_handle, int a, int b) { Calculator_SharedProxy c(calc_handle); return c.divide(a, b); }
 inline void Thrower::crash() { __builtin_trap(); }
 #else
 inline int Thrower::divide_via_host(uint64_t, int, int) { return 0; }
 inline int Thrower::add_via_host(uint64_t, int, int) { return 0; }
+inline int Thrower::divide_via_shared_host(uint64_t, int, int) { return 0; }
 inline void Thrower::crash() {}
 #endif
 

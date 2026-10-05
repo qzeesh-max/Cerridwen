@@ -143,6 +143,32 @@ TEST(CerridwenE2E, ExceptionPropagation) {
     EXPECT_THROW({ thrower.crash(); }, PluginTrap);
 }
 
+TEST(CerridwenE2E, SharedPointerHostClass) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    bind_Calculator(instance->get_module());
+
+    uint32_t ptr = instance->call_create("Thrower_create");
+    ASSERT_NE(ptr, 0);
+    
+    Thrower_Trampoline thrower;
+    thrower._wasm_instance = instance.get();
+    thrower._wasm_ptr = ptr;
+    
+    auto calc_sp = std::make_shared<Calculator>();
+    EXPECT_EQ(calc_sp.use_count(), 1);
+    
+    uint64_t shared_handle = cerridwen::share_to_wasm(calc_sp);
+    EXPECT_EQ(calc_sp.use_count(), 2);
+    
+    int result = thrower.divide_via_shared_host(shared_handle, 20, 4);
+    EXPECT_EQ(result, 5);
+    
+    // After divide_via_shared_host returns, the Calculator_SharedProxy was destroyed inside WASM.
+    // Its destructor calls Calculator_shared_release, which deletes the heap-allocated shared_ptr.
+    // This drops the use_count back to 1.
+    EXPECT_EQ(calc_sp.use_count(), 1);
+}
+
 TEST(CerridwenE2E, MemoryLimitsAndGrowth) {
     auto initial_instance = std::make_unique<Wasm3Instance>(get_wasm_path());
     int initial_pages = initial_instance->memory_bytes() / 65536;

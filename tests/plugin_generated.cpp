@@ -369,6 +369,10 @@ EMSCRIPTEN_KEEPALIVE int Thrower_add_via_host(Thrower* ptr, long long unsigned i
     return ptr->add_via_host(arg0, arg1, arg2);
 }
 
+EMSCRIPTEN_KEEPALIVE int Thrower_divide_via_shared_host(Thrower* ptr, long long unsigned int arg0, int arg1, int arg2) {
+    return ptr->divide_via_shared_host(arg0, arg1, arg2);
+}
+
 EMSCRIPTEN_KEEPALIVE void Thrower_crash(Thrower* ptr) {
     ptr->crash();
 }
