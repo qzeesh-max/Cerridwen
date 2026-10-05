@@ -2,3 +2,5 @@ build/
 a.out
 *.wasm
 .DS_Store
+tests/plugin_generated.cpp
+tests/plugin_trampoline.hpp
