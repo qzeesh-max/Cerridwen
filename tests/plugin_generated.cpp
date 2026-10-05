@@ -30,7 +30,8 @@ EMSCRIPTEN_KEEPALIVE void MathPlugin_decrement(MathPlugin* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int MathPlugin_multiply(MathPlugin* ptr, int arg0, int arg1) {
-    return ptr->multiply(arg0, arg1);
+    auto _ret = ptr->multiply(arg0, arg1);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE void MathPlugin_do_logging(MathPlugin* ptr, long long unsigned int arg0) {
@@ -48,15 +49,18 @@ EMSCRIPTEN_KEEPALIVE void Shape_destroy(Shape* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Shape_sides(Shape* ptr) {
-    return ptr->sides();
+    auto _ret = ptr->sides();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Shape_area(Shape* ptr) {
-    return ptr->area();
+    auto _ret = ptr->area();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Shape_describe(Shape* ptr) {
-    return ptr->describe();
+    auto _ret = ptr->describe();
+    return _ret;
 }
 
 } // extern "C"
@@ -90,15 +94,18 @@ EMSCRIPTEN_KEEPALIVE void Rect_set_h(Rect* ptr, int val) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Rect_sides(Rect* ptr) {
-    return ptr->sides();
+    auto _ret = ptr->sides();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Rect_area(Rect* ptr) {
-    return ptr->area();
+    auto _ret = ptr->area();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Rect_describe(Rect* ptr) {
-    return ptr->describe();
+    auto _ret = ptr->describe();
+    return _ret;
 }
 
 } // extern "C"
@@ -132,15 +139,18 @@ EMSCRIPTEN_KEEPALIVE void Square_set_h(Square* ptr, int val) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Square_describe(Square* ptr) {
-    return ptr->describe();
+    auto _ret = ptr->describe();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Square_sides(Square* ptr) {
-    return ptr->sides();
+    auto _ret = ptr->sides();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Square_area(Square* ptr) {
-    return ptr->area();
+    auto _ret = ptr->area();
+    return _ret;
 }
 
 } // extern "C"
@@ -158,7 +168,8 @@ EMSCRIPTEN_KEEPALIVE void Walker_destroy(Walker* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Walker_walk(Walker* ptr, int arg0) {
-    return ptr->walk(arg0);
+    auto _ret = ptr->walk(arg0);
+    return _ret;
 }
 
 } // extern "C"
@@ -176,7 +187,8 @@ EMSCRIPTEN_KEEPALIVE void Swimmer_destroy(Swimmer* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Swimmer_swim(Swimmer* ptr, int arg0) {
-    return ptr->swim(arg0);
+    auto _ret = ptr->swim(arg0);
+    return _ret;
 }
 
 } // extern "C"
@@ -194,15 +206,18 @@ EMSCRIPTEN_KEEPALIVE void Duck_destroy(Duck* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Duck_walk(Duck* ptr, int arg0) {
-    return ptr->walk(arg0);
+    auto _ret = ptr->walk(arg0);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Duck_swim(Duck* ptr, int arg0) {
-    return ptr->swim(arg0);
+    auto _ret = ptr->swim(arg0);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Duck_fly(Duck* ptr) {
-    return ptr->fly();
+    auto _ret = ptr->fly();
+    return _ret;
 }
 
 } // extern "C"
@@ -220,11 +235,13 @@ EMSCRIPTEN_KEEPALIVE void Entity_destroy(Entity* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Entity_id(Entity* ptr) {
-    return ptr->id();
+    auto _ret = ptr->id();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Entity_kind(Entity* ptr) {
-    return ptr->kind();
+    auto _ret = ptr->kind();
+    return _ret;
 }
 
 } // extern "C"
@@ -242,15 +259,18 @@ EMSCRIPTEN_KEEPALIVE void Named_destroy(Named* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Named_kind(Named* ptr) {
-    return ptr->kind();
+    auto _ret = ptr->kind();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Named_name_len(Named* ptr) {
-    return ptr->name_len();
+    auto _ret = ptr->name_len();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Named_id(Named* ptr) {
-    return ptr->id();
+    auto _ret = ptr->id();
+    return _ret;
 }
 
 } // extern "C"
@@ -268,15 +288,18 @@ EMSCRIPTEN_KEEPALIVE void Tagged_destroy(Tagged* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Tagged_id(Tagged* ptr) {
-    return ptr->id();
+    auto _ret = ptr->id();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Tagged_tag_count(Tagged* ptr) {
-    return ptr->tag_count();
+    auto _ret = ptr->tag_count();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Tagged_kind(Tagged* ptr) {
-    return ptr->kind();
+    auto _ret = ptr->kind();
+    return _ret;
 }
 
 } // extern "C"
@@ -294,23 +317,28 @@ EMSCRIPTEN_KEEPALIVE void Widget_destroy(Widget* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Widget_total(Widget* ptr) {
-    return ptr->total();
+    auto _ret = ptr->total();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Widget_kind(Widget* ptr) {
-    return ptr->kind();
+    auto _ret = ptr->kind();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Widget_name_len(Widget* ptr) {
-    return ptr->name_len();
+    auto _ret = ptr->name_len();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Widget_id(Widget* ptr) {
-    return ptr->id();
+    auto _ret = ptr->id();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Widget_tag_count(Widget* ptr) {
-    return ptr->tag_count();
+    auto _ret = ptr->tag_count();
+    return _ret;
 }
 
 } // extern "C"
@@ -328,15 +356,18 @@ EMSCRIPTEN_KEEPALIVE void Bird_destroy(Bird* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Bird_legs(Bird* ptr) {
-    return ptr->legs();
+    auto _ret = ptr->legs();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Bird_sound_id(Bird* ptr) {
-    return ptr->sound_id();
+    auto _ret = ptr->sound_id();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Bird_describe(Bird* ptr) {
-    return ptr->describe();
+    auto _ret = ptr->describe();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE void Bird_attach(Bird* ptr, long long unsigned int arg0) {
@@ -358,19 +389,23 @@ EMSCRIPTEN_KEEPALIVE void Thrower_destroy(Thrower* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int Thrower_risky(Thrower* ptr, int arg0) {
-    return ptr->risky(arg0);
+    auto _ret = ptr->risky(arg0);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Thrower_divide_via_host(Thrower* ptr, long long unsigned int arg0, int arg1, int arg2) {
-    return ptr->divide_via_host(arg0, arg1, arg2);
+    auto _ret = ptr->divide_via_host(arg0, arg1, arg2);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Thrower_add_via_host(Thrower* ptr, long long unsigned int arg0, int arg1, int arg2) {
-    return ptr->add_via_host(arg0, arg1, arg2);
+    auto _ret = ptr->add_via_host(arg0, arg1, arg2);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int Thrower_divide_via_shared_host(Thrower* ptr, long long unsigned int arg0, int arg1, int arg2) {
-    return ptr->divide_via_shared_host(arg0, arg1, arg2);
+    auto _ret = ptr->divide_via_shared_host(arg0, arg1, arg2);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE void Thrower_crash(Thrower* ptr) {
@@ -392,23 +427,28 @@ EMSCRIPTEN_KEEPALIVE void MemoryProbe_destroy(MemoryProbe* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int MemoryProbe_alloc_block(MemoryProbe* ptr, int arg0) {
-    return ptr->alloc_block(arg0);
+    auto _ret = ptr->alloc_block(arg0);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int MemoryProbe_free_all(MemoryProbe* ptr) {
-    return ptr->free_all();
+    auto _ret = ptr->free_all();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int MemoryProbe_block_count(MemoryProbe* ptr) {
-    return ptr->block_count();
+    auto _ret = ptr->block_count();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int MemoryProbe_pages(MemoryProbe* ptr) {
-    return ptr->pages();
+    auto _ret = ptr->pages();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int MemoryProbe_grow(MemoryProbe* ptr, int arg0) {
-    return ptr->grow(arg0);
+    auto _ret = ptr->grow(arg0);
+    return _ret;
 }
 
 } // extern "C"
@@ -426,31 +466,79 @@ EMSCRIPTEN_KEEPALIVE void StorageClient_destroy(StorageClient* ptr) {
 }
 
 EMSCRIPTEN_KEEPALIVE int StorageClient_save_number(StorageClient* ptr, int arg0) {
-    return ptr->save_number(arg0);
+    auto _ret = ptr->save_number(arg0);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int StorageClient_load_number(StorageClient* ptr) {
-    return ptr->load_number();
+    auto _ret = ptr->load_number();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int StorageClient_write_blob(StorageClient* ptr, int arg0) {
-    return ptr->write_blob(arg0);
+    auto _ret = ptr->write_blob(arg0);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int StorageClient_blob_checksum(StorageClient* ptr) {
-    return ptr->blob_checksum();
+    auto _ret = ptr->blob_checksum();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int StorageClient_try_write(StorageClient* ptr, int arg0, int arg1) {
-    return ptr->try_write(arg0, arg1);
+    auto _ret = ptr->try_write(arg0, arg1);
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int StorageClient_remove_blob(StorageClient* ptr) {
-    return ptr->remove_blob();
+    auto _ret = ptr->remove_blob();
+    return _ret;
 }
 
 EMSCRIPTEN_KEEPALIVE int StorageClient_used_bytes(StorageClient* ptr) {
-    return ptr->used_bytes();
+    auto _ret = ptr->used_bytes();
+    return _ret;
+}
+
+} // extern "C"
+// --- Generated by Cerridwen WebAssembly EXPORT Generator ---
+#include <emscripten.h>
+
+extern "C" {
+
+EMSCRIPTEN_KEEPALIVE ContainerPlugin* ContainerPlugin_create() {
+    return new ContainerPlugin();
+}
+
+EMSCRIPTEN_KEEPALIVE void ContainerPlugin_destroy(ContainerPlugin* ptr) {
+    delete ptr;
+}
+
+EMSCRIPTEN_KEEPALIVE void ContainerPlugin_process_containers(ContainerPlugin* ptr, uint32_t arg0, uint32_t arg1) {
+    using BaseT_arg0 = std::remove_reference_t<std::vector<int>&>;
+    using ValT_arg0 = BaseT_arg0::value_type;
+    uint32_t* arg0_struct = reinterpret_cast<uint32_t*>(arg0);
+    ValT_arg0* arg0_data = reinterpret_cast<ValT_arg0*>(arg0_struct[0]);
+    uint32_t arg0_len = arg0_struct[1];
+    BaseT_arg0 local_arg0(arg0_data, arg0_data + arg0_len);
+    using BaseT_arg1 = std::remove_reference_t<std::map<int, int>&>;
+    using K_arg1 = BaseT_arg1::key_type;
+    using V_arg1 = BaseT_arg1::mapped_type;
+    using PairT_arg1 = std::pair<K_arg1, V_arg1>;
+    uint32_t* arg1_struct = reinterpret_cast<uint32_t*>(arg1);
+    PairT_arg1* arg1_data = reinterpret_cast<PairT_arg1*>(arg1_struct[0]);
+    uint32_t arg1_len = arg1_struct[1];
+    BaseT_arg1 local_arg1(arg1_data, arg1_data + arg1_len);
+    ptr->process_containers(local_arg0, local_arg1);
+    ValT_arg0* new_arg0_data = (ValT_arg0*) cerridwen::plugin::allocate(local_arg0.size() * sizeof(ValT_arg0));
+    std::memcpy((void*)new_arg0_data, local_arg0.data(), local_arg0.size() * sizeof(ValT_arg0));
+    arg0_struct[0] = reinterpret_cast<uint32_t>(new_arg0_data);
+    arg0_struct[1] = local_arg0.size();
+    std::vector<PairT_arg1> new_arg1_flat(local_arg1.begin(), local_arg1.end());
+    PairT_arg1* new_arg1_data = (PairT_arg1*) cerridwen::plugin::allocate(new_arg1_flat.size() * sizeof(PairT_arg1));
+    std::memcpy((void*)new_arg1_data, new_arg1_flat.data(), new_arg1_flat.size() * sizeof(PairT_arg1));
+    arg1_struct[0] = reinterpret_cast<uint32_t>(new_arg1_data);
+    arg1_struct[1] = new_arg1_flat.size();
 }
 
 } // extern "C"

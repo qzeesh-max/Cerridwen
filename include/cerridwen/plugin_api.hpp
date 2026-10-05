@@ -46,6 +46,18 @@ namespace cerridwen::plugin {
 inline void* allocate(size_t bytes) { return std::malloc(bytes); }
 inline void release(void* p) { std::free(p); }
 
+} // namespace cerridwen::plugin
+
+extern "C" {
+    __attribute__((export_name("cerridwen_alloc")))
+    inline void* cerridwen_alloc(size_t bytes) { return cerridwen::plugin::allocate(bytes); }
+
+    __attribute__((export_name("cerridwen_free")))
+    inline void cerridwen_free(void* p) { cerridwen::plugin::release(p); }
+}
+
+namespace cerridwen::plugin {
+
 // Linear memory size in 64KiB pages.
 inline int memory_pages() { return static_cast<int>(__builtin_wasm_memory_size(0)); }
 

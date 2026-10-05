@@ -169,6 +169,33 @@ TEST(CerridwenE2E, SharedPointerHostClass) {
     EXPECT_EQ(calc_sp.use_count(), 1);
 }
 
+TEST(CerridwenE2E, ContainerMarshalling) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    
+    uint32_t ptr = instance->call_create("ContainerPlugin_create");
+    ASSERT_NE(ptr, 0);
+    
+    ContainerPlugin_Trampoline plugin;
+    plugin._wasm_instance = instance.get();
+    plugin._wasm_ptr = ptr;
+    
+    std::vector<int> vec = {1, 2, 3};
+    std::map<int, int> m = {{1, 10}, {2, 20}};
+    
+    plugin.process_containers(vec, m);
+    
+    EXPECT_EQ(vec.size(), 4);
+    EXPECT_EQ(vec[0], 11);
+    EXPECT_EQ(vec[1], 12);
+    EXPECT_EQ(vec[2], 13);
+    EXPECT_EQ(vec[3], 999);
+    
+    EXPECT_EQ(m.size(), 3);
+    EXPECT_EQ(m[1], 20);
+    EXPECT_EQ(m[2], 30);
+    EXPECT_EQ(m[100], 200);
+}
+
 TEST(CerridwenE2E, MemoryLimitsAndGrowth) {
     auto initial_instance = std::make_unique<Wasm3Instance>(get_wasm_path());
     int initial_pages = initial_instance->memory_bytes() / 65536;

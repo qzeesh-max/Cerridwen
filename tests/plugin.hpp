@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
+#include <map>
 #include <cerridwen/annotations.hpp>
 #include <cerridwen/plugin_api.hpp>
 #include "host_classes.hpp"
@@ -285,4 +287,26 @@ inline int StorageClient::blob_checksum() { return 0; }
 inline int StorageClient::try_write(int, int) { return 0; }
 inline int StorageClient::remove_blob() { return 0; }
 inline int StorageClient::used_bytes() { return 0; }
+#endif
+
+// =====================================================================================
+// Container marshaling: vector and map passed by reference.
+// =====================================================================================
+struct CERRIDWEN_EXPORT_WASM ContainerPlugin {
+    virtual ~ContainerPlugin() = default;
+
+    virtual void process_containers(std::vector<int>& vec, std::map<int, int>& m);
+};
+
+#ifdef __EMSCRIPTEN__
+inline void ContainerPlugin::process_containers(std::vector<int>& vec, std::map<int, int>& m) {
+    for (int& v : vec) v += 10;
+    vec.push_back(999);
+    for (auto& pair : m) {
+        pair.second += 10;
+    }
+    m[100] = 200;
+}
+#else
+inline void ContainerPlugin::process_containers(std::vector<int>&, std::map<int, int>&) {}
 #endif

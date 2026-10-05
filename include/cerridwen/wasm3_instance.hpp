@@ -243,12 +243,12 @@ public:
     }
 
     uint32_t allocate(size_t size) override {
-        uint32_t ptr = static_cast<uint32_t>(result_i32(invoke("malloc", {std::to_string(size)})));
+        uint32_t ptr = static_cast<uint32_t>(result_i32(invoke("cerridwen_alloc", {std::to_string(size)})));
         if (ptr == 0) throw ResourceLimitError("plugin malloc failed (out of memory or limit reached)");
         return ptr;
     }
 
-    void deallocate(uint32_t ptr) override { invoke("free", {std::to_string(ptr)}); }
+    void deallocate(uint32_t ptr) override { invoke("cerridwen_free", {std::to_string(ptr)}); }
 
     void read_memory(uint32_t wasm_ptr, void* dest, size_t size) override {
         size_t mem_size = 0;
