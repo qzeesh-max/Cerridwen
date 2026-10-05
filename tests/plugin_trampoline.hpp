@@ -894,6 +894,173 @@ public:
         if (new_arg1_data != arg1_data) _wasm_instance->deallocate(new_arg1_data);
     }
 
+    void process_other_containers(std::set<int>& arg0, std::__cxx11::list<int>& arg1, std::deque<int>& arg2, std::unordered_set<int>& arg3, std::unordered_map<int, int>& arg4) override {
+        if (!_wasm_instance) throw std::runtime_error("No WASM instance");
+        // Sync data before call
+        std::vector<std::string> _args;
+        _args.push_back(std::to_string(_wasm_ptr));
+        using ValT_arg0 = std::remove_reference_t<decltype(arg0)>::value_type;
+        std::vector<ValT_arg0> arg0_flat(arg0.begin(), arg0.end());
+        uint32_t arg0_struct = _wasm_instance->allocate(8);
+        uint32_t arg0_data = _wasm_instance->allocate(arg0_flat.size() * sizeof(ValT_arg0));
+        _wasm_instance->write_memory(arg0_data, arg0_flat.data(), arg0_flat.size() * sizeof(ValT_arg0));
+        uint32_t arg0_len = arg0_flat.size();
+        _wasm_instance->write_memory(arg0_struct, &arg0_data, 4);
+        _wasm_instance->write_memory(arg0_struct + 4, &arg0_len, 4);
+        _args.push_back(std::to_string(arg0_struct));
+        using ValT_arg1 = std::remove_reference_t<decltype(arg1)>::value_type;
+        std::vector<ValT_arg1> arg1_flat(arg1.begin(), arg1.end());
+        uint32_t arg1_struct = _wasm_instance->allocate(8);
+        uint32_t arg1_data = _wasm_instance->allocate(arg1_flat.size() * sizeof(ValT_arg1));
+        _wasm_instance->write_memory(arg1_data, arg1_flat.data(), arg1_flat.size() * sizeof(ValT_arg1));
+        uint32_t arg1_len = arg1_flat.size();
+        _wasm_instance->write_memory(arg1_struct, &arg1_data, 4);
+        _wasm_instance->write_memory(arg1_struct + 4, &arg1_len, 4);
+        _args.push_back(std::to_string(arg1_struct));
+        using ValT_arg2 = std::remove_reference_t<decltype(arg2)>::value_type;
+        std::vector<ValT_arg2> arg2_flat(arg2.begin(), arg2.end());
+        uint32_t arg2_struct = _wasm_instance->allocate(8);
+        uint32_t arg2_data = _wasm_instance->allocate(arg2_flat.size() * sizeof(ValT_arg2));
+        _wasm_instance->write_memory(arg2_data, arg2_flat.data(), arg2_flat.size() * sizeof(ValT_arg2));
+        uint32_t arg2_len = arg2_flat.size();
+        _wasm_instance->write_memory(arg2_struct, &arg2_data, 4);
+        _wasm_instance->write_memory(arg2_struct + 4, &arg2_len, 4);
+        _args.push_back(std::to_string(arg2_struct));
+        using ValT_arg3 = std::remove_reference_t<decltype(arg3)>::value_type;
+        std::vector<ValT_arg3> arg3_flat(arg3.begin(), arg3.end());
+        uint32_t arg3_struct = _wasm_instance->allocate(8);
+        uint32_t arg3_data = _wasm_instance->allocate(arg3_flat.size() * sizeof(ValT_arg3));
+        _wasm_instance->write_memory(arg3_data, arg3_flat.data(), arg3_flat.size() * sizeof(ValT_arg3));
+        uint32_t arg3_len = arg3_flat.size();
+        _wasm_instance->write_memory(arg3_struct, &arg3_data, 4);
+        _wasm_instance->write_memory(arg3_struct + 4, &arg3_len, 4);
+        _args.push_back(std::to_string(arg3_struct));
+        using K_arg4 = std::remove_reference_t<decltype(arg4)>::key_type;
+        using V_arg4 = std::remove_reference_t<decltype(arg4)>::mapped_type;
+        using PairT_arg4 = std::pair<K_arg4, V_arg4>;
+        std::vector<PairT_arg4> arg4_flat(arg4.begin(), arg4.end());
+        uint32_t arg4_struct = _wasm_instance->allocate(8);
+        uint32_t arg4_data = _wasm_instance->allocate(arg4_flat.size() * sizeof(PairT_arg4));
+        _wasm_instance->write_memory(arg4_data, arg4_flat.data(), arg4_flat.size() * sizeof(PairT_arg4));
+        uint32_t arg4_len = arg4_flat.size();
+        _wasm_instance->write_memory(arg4_struct, &arg4_data, 4);
+        _wasm_instance->write_memory(arg4_struct + 4, &arg4_len, 4);
+        _args.push_back(std::to_string(arg4_struct));
+        _wasm_instance->call_args("ContainerPlugin_process_other_containers", _args);
+        uint32_t new_arg0_data = 0;
+        uint32_t new_arg0_len = 0;
+        _wasm_instance->read_memory(arg0_struct, &new_arg0_data, 4);
+        _wasm_instance->read_memory(arg0_struct + 4, &new_arg0_len, 4);
+        std::vector<ValT_arg0> new_arg0_flat(new_arg0_len);
+        _wasm_instance->read_memory(new_arg0_data, new_arg0_flat.data(), new_arg0_len * sizeof(ValT_arg0));
+        arg0.clear();
+        arg0.insert(new_arg0_flat.begin(), new_arg0_flat.end());
+        _wasm_instance->deallocate(arg0_struct);
+        _wasm_instance->deallocate(arg0_data);
+        if (new_arg0_data != arg0_data) _wasm_instance->deallocate(new_arg0_data);
+        uint32_t new_arg1_data = 0;
+        uint32_t new_arg1_len = 0;
+        _wasm_instance->read_memory(arg1_struct, &new_arg1_data, 4);
+        _wasm_instance->read_memory(arg1_struct + 4, &new_arg1_len, 4);
+        std::vector<ValT_arg1> new_arg1_flat(new_arg1_len);
+        _wasm_instance->read_memory(new_arg1_data, new_arg1_flat.data(), new_arg1_len * sizeof(ValT_arg1));
+        arg1.assign(new_arg1_flat.begin(), new_arg1_flat.end());
+        _wasm_instance->deallocate(arg1_struct);
+        _wasm_instance->deallocate(arg1_data);
+        if (new_arg1_data != arg1_data) _wasm_instance->deallocate(new_arg1_data);
+        uint32_t new_arg2_data = 0;
+        uint32_t new_arg2_len = 0;
+        _wasm_instance->read_memory(arg2_struct, &new_arg2_data, 4);
+        _wasm_instance->read_memory(arg2_struct + 4, &new_arg2_len, 4);
+        std::vector<ValT_arg2> new_arg2_flat(new_arg2_len);
+        _wasm_instance->read_memory(new_arg2_data, new_arg2_flat.data(), new_arg2_len * sizeof(ValT_arg2));
+        arg2.assign(new_arg2_flat.begin(), new_arg2_flat.end());
+        _wasm_instance->deallocate(arg2_struct);
+        _wasm_instance->deallocate(arg2_data);
+        if (new_arg2_data != arg2_data) _wasm_instance->deallocate(new_arg2_data);
+        uint32_t new_arg3_data = 0;
+        uint32_t new_arg3_len = 0;
+        _wasm_instance->read_memory(arg3_struct, &new_arg3_data, 4);
+        _wasm_instance->read_memory(arg3_struct + 4, &new_arg3_len, 4);
+        std::vector<ValT_arg3> new_arg3_flat(new_arg3_len);
+        _wasm_instance->read_memory(new_arg3_data, new_arg3_flat.data(), new_arg3_len * sizeof(ValT_arg3));
+        arg3.clear();
+        arg3.insert(new_arg3_flat.begin(), new_arg3_flat.end());
+        _wasm_instance->deallocate(arg3_struct);
+        _wasm_instance->deallocate(arg3_data);
+        if (new_arg3_data != arg3_data) _wasm_instance->deallocate(new_arg3_data);
+        uint32_t new_arg4_data = 0;
+        uint32_t new_arg4_len = 0;
+        _wasm_instance->read_memory(arg4_struct, &new_arg4_data, 4);
+        _wasm_instance->read_memory(arg4_struct + 4, &new_arg4_len, 4);
+        std::vector<PairT_arg4> new_arg4_flat(new_arg4_len);
+        _wasm_instance->read_memory(new_arg4_data, new_arg4_flat.data(), new_arg4_len * sizeof(PairT_arg4));
+        arg4.clear();
+        arg4.insert(new_arg4_flat.begin(), new_arg4_flat.end());
+        _wasm_instance->deallocate(arg4_struct);
+        _wasm_instance->deallocate(arg4_data);
+        if (new_arg4_data != arg4_data) _wasm_instance->deallocate(new_arg4_data);
+    }
+
+    void process_generic_refs(std::variant<int, float>& arg0, DummyVisitor& arg1, MyFunctor& arg2) override {
+        if (!_wasm_instance) throw std::runtime_error("No WASM instance");
+        // Sync data before call
+        std::vector<std::string> _args;
+        _args.push_back(std::to_string(_wasm_ptr));
+        using BaseT_arg0 = std::remove_reference_t<decltype(arg0)>;
+        uint32_t arg0_ptr = _wasm_instance->allocate(sizeof(BaseT_arg0));
+        _wasm_instance->write_memory(arg0_ptr, &arg0, sizeof(BaseT_arg0));
+        _args.push_back(std::to_string(arg0_ptr));
+        using BaseT_arg1 = std::remove_reference_t<decltype(arg1)>;
+        uint32_t arg1_ptr = _wasm_instance->allocate(sizeof(BaseT_arg1));
+        _wasm_instance->write_memory(arg1_ptr, &arg1, sizeof(BaseT_arg1));
+        _args.push_back(std::to_string(arg1_ptr));
+        using BaseT_arg2 = std::remove_reference_t<decltype(arg2)>;
+        uint32_t arg2_ptr = _wasm_instance->allocate(sizeof(BaseT_arg2));
+        _wasm_instance->write_memory(arg2_ptr, &arg2, sizeof(BaseT_arg2));
+        _args.push_back(std::to_string(arg2_ptr));
+        _wasm_instance->call_args("ContainerPlugin_process_generic_refs", _args);
+        _wasm_instance->read_memory(arg0_ptr, &arg0, sizeof(BaseT_arg0));
+        _wasm_instance->deallocate(arg0_ptr);
+        _wasm_instance->read_memory(arg1_ptr, &arg1, sizeof(BaseT_arg1));
+        _wasm_instance->deallocate(arg1_ptr);
+        _wasm_instance->read_memory(arg2_ptr, &arg2, sizeof(BaseT_arg2));
+        _wasm_instance->deallocate(arg2_ptr);
+    }
+
+    void process_shared_ptr(std::shared_ptr<int>& arg0) override {
+        if (!_wasm_instance) throw std::runtime_error("No WASM instance");
+        // Sync data before call
+        std::vector<std::string> _args;
+        _args.push_back(std::to_string(_wasm_ptr));
+        using BaseT_arg0 = std::remove_reference_t<decltype(arg0)>;
+        using ValT_arg0 = BaseT_arg0::element_type;
+        uint32_t arg0_struct = _wasm_instance->allocate(8);
+        uint32_t arg0_is_null = (arg0 == nullptr);
+        uint32_t arg0_data = 0;
+        if (!arg0_is_null) {
+            arg0_data = _wasm_instance->allocate(sizeof(ValT_arg0));
+            _wasm_instance->write_memory(arg0_data, arg0.get(), sizeof(ValT_arg0));
+        }
+        _wasm_instance->write_memory(arg0_struct, &arg0_is_null, 4);
+        _wasm_instance->write_memory(arg0_struct + 4, &arg0_data, 4);
+        _args.push_back(std::to_string(arg0_struct));
+        _wasm_instance->call_args("ContainerPlugin_process_shared_ptr", _args);
+        uint32_t new_arg0_is_null = 0;
+        uint32_t new_arg0_data = 0;
+        _wasm_instance->read_memory(arg0_struct, &new_arg0_is_null, 4);
+        _wasm_instance->read_memory(arg0_struct + 4, &new_arg0_data, 4);
+        if (new_arg0_is_null) {
+            arg0 = nullptr;
+        } else {
+            if (arg0 == nullptr) arg0 = std::make_shared<ValT_arg0>();
+            _wasm_instance->read_memory(new_arg0_data, arg0.get(), sizeof(ValT_arg0));
+            _wasm_instance->deallocate(new_arg0_data);
+        }
+        _wasm_instance->deallocate(arg0_struct);
+        if (arg0_data && arg0_data != new_arg0_data) _wasm_instance->deallocate(arg0_data);
+    }
+
 };
 // --- Generated by Cerridwen WebAssembly HOST-EXPORTS Generator ---
 #include <wasm3.h>

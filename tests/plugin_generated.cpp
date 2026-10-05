@@ -541,4 +541,96 @@ EMSCRIPTEN_KEEPALIVE void ContainerPlugin_process_containers(ContainerPlugin* pt
     arg1_struct[1] = new_arg1_flat.size();
 }
 
+EMSCRIPTEN_KEEPALIVE void ContainerPlugin_process_other_containers(ContainerPlugin* ptr, uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4) {
+    using BaseT_arg0 = std::remove_reference_t<std::set<int>&>;
+    using ValT_arg0 = BaseT_arg0::value_type;
+    uint32_t* arg0_struct = reinterpret_cast<uint32_t*>(arg0);
+    ValT_arg0* arg0_data = reinterpret_cast<ValT_arg0*>(arg0_struct[0]);
+    uint32_t arg0_len = arg0_struct[1];
+    BaseT_arg0 local_arg0(arg0_data, arg0_data + arg0_len);
+    using BaseT_arg1 = std::remove_reference_t<std::list<int>&>;
+    using ValT_arg1 = BaseT_arg1::value_type;
+    uint32_t* arg1_struct = reinterpret_cast<uint32_t*>(arg1);
+    ValT_arg1* arg1_data = reinterpret_cast<ValT_arg1*>(arg1_struct[0]);
+    uint32_t arg1_len = arg1_struct[1];
+    BaseT_arg1 local_arg1(arg1_data, arg1_data + arg1_len);
+    using BaseT_arg2 = std::remove_reference_t<std::deque<int>&>;
+    using ValT_arg2 = BaseT_arg2::value_type;
+    uint32_t* arg2_struct = reinterpret_cast<uint32_t*>(arg2);
+    ValT_arg2* arg2_data = reinterpret_cast<ValT_arg2*>(arg2_struct[0]);
+    uint32_t arg2_len = arg2_struct[1];
+    BaseT_arg2 local_arg2(arg2_data, arg2_data + arg2_len);
+    using BaseT_arg3 = std::remove_reference_t<std::unordered_set<int>&>;
+    using ValT_arg3 = BaseT_arg3::value_type;
+    uint32_t* arg3_struct = reinterpret_cast<uint32_t*>(arg3);
+    ValT_arg3* arg3_data = reinterpret_cast<ValT_arg3*>(arg3_struct[0]);
+    uint32_t arg3_len = arg3_struct[1];
+    BaseT_arg3 local_arg3(arg3_data, arg3_data + arg3_len);
+    using BaseT_arg4 = std::remove_reference_t<std::unordered_map<int, int>&>;
+    using K_arg4 = BaseT_arg4::key_type;
+    using V_arg4 = BaseT_arg4::mapped_type;
+    using PairT_arg4 = std::pair<K_arg4, V_arg4>;
+    uint32_t* arg4_struct = reinterpret_cast<uint32_t*>(arg4);
+    PairT_arg4* arg4_data = reinterpret_cast<PairT_arg4*>(arg4_struct[0]);
+    uint32_t arg4_len = arg4_struct[1];
+    BaseT_arg4 local_arg4(arg4_data, arg4_data + arg4_len);
+    ptr->process_other_containers(local_arg0, local_arg1, local_arg2, local_arg3, local_arg4);
+    std::vector<ValT_arg0> new_arg0_flat(local_arg0.begin(), local_arg0.end());
+    ValT_arg0* new_arg0_data = (ValT_arg0*) cerridwen::plugin::allocate(new_arg0_flat.size() * sizeof(ValT_arg0));
+    std::memcpy((void*)new_arg0_data, new_arg0_flat.data(), new_arg0_flat.size() * sizeof(ValT_arg0));
+    arg0_struct[0] = reinterpret_cast<uint32_t>(new_arg0_data);
+    arg0_struct[1] = new_arg0_flat.size();
+    std::vector<ValT_arg1> new_arg1_flat(local_arg1.begin(), local_arg1.end());
+    ValT_arg1* new_arg1_data = (ValT_arg1*) cerridwen::plugin::allocate(new_arg1_flat.size() * sizeof(ValT_arg1));
+    std::memcpy((void*)new_arg1_data, new_arg1_flat.data(), new_arg1_flat.size() * sizeof(ValT_arg1));
+    arg1_struct[0] = reinterpret_cast<uint32_t>(new_arg1_data);
+    arg1_struct[1] = new_arg1_flat.size();
+    std::vector<ValT_arg2> new_arg2_flat(local_arg2.begin(), local_arg2.end());
+    ValT_arg2* new_arg2_data = (ValT_arg2*) cerridwen::plugin::allocate(new_arg2_flat.size() * sizeof(ValT_arg2));
+    std::memcpy((void*)new_arg2_data, new_arg2_flat.data(), new_arg2_flat.size() * sizeof(ValT_arg2));
+    arg2_struct[0] = reinterpret_cast<uint32_t>(new_arg2_data);
+    arg2_struct[1] = new_arg2_flat.size();
+    std::vector<ValT_arg3> new_arg3_flat(local_arg3.begin(), local_arg3.end());
+    ValT_arg3* new_arg3_data = (ValT_arg3*) cerridwen::plugin::allocate(new_arg3_flat.size() * sizeof(ValT_arg3));
+    std::memcpy((void*)new_arg3_data, new_arg3_flat.data(), new_arg3_flat.size() * sizeof(ValT_arg3));
+    arg3_struct[0] = reinterpret_cast<uint32_t>(new_arg3_data);
+    arg3_struct[1] = new_arg3_flat.size();
+    std::vector<PairT_arg4> new_arg4_flat(local_arg4.begin(), local_arg4.end());
+    PairT_arg4* new_arg4_data = (PairT_arg4*) cerridwen::plugin::allocate(new_arg4_flat.size() * sizeof(PairT_arg4));
+    std::memcpy((void*)new_arg4_data, new_arg4_flat.data(), new_arg4_flat.size() * sizeof(PairT_arg4));
+    arg4_struct[0] = reinterpret_cast<uint32_t>(new_arg4_data);
+    arg4_struct[1] = new_arg4_flat.size();
+}
+
+EMSCRIPTEN_KEEPALIVE void ContainerPlugin_process_generic_refs(ContainerPlugin* ptr, uint32_t arg0_ptr, uint32_t arg1_ptr, uint32_t arg2_ptr) {
+    using BaseT_arg0 = std::remove_reference_t<std::variant<int, float>&>;
+    BaseT_arg0& local_arg0 = *reinterpret_cast<BaseT_arg0*>(arg0_ptr);
+    using BaseT_arg1 = std::remove_reference_t<DummyVisitor&>;
+    BaseT_arg1& local_arg1 = *reinterpret_cast<BaseT_arg1*>(arg1_ptr);
+    using BaseT_arg2 = std::remove_reference_t<MyFunctor&>;
+    BaseT_arg2& local_arg2 = *reinterpret_cast<BaseT_arg2*>(arg2_ptr);
+    ptr->process_generic_refs(local_arg0, local_arg1, local_arg2);
+}
+
+EMSCRIPTEN_KEEPALIVE void ContainerPlugin_process_shared_ptr(ContainerPlugin* ptr, uint32_t arg0) {
+    using BaseT_arg0 = std::remove_reference_t<std::shared_ptr<int>&>;
+    using ValT_arg0 = BaseT_arg0::element_type;
+    uint32_t* arg0_struct = reinterpret_cast<uint32_t*>(arg0);
+    uint32_t arg0_is_null = arg0_struct[0];
+    uint32_t arg0_data = arg0_struct[1];
+    BaseT_arg0 local_arg0;
+    if (!arg0_is_null) {
+        local_arg0 = std::make_shared<ValT_arg0>(*reinterpret_cast<ValT_arg0*>(arg0_data));
+    }
+    ptr->process_shared_ptr(local_arg0);
+    arg0_struct[0] = (local_arg0 == nullptr);
+    if (local_arg0) {
+        ValT_arg0* new_arg0_data = (ValT_arg0*) cerridwen::plugin::allocate(sizeof(ValT_arg0));
+        std::memcpy((void*)new_arg0_data, local_arg0.get(), sizeof(ValT_arg0));
+        arg0_struct[1] = reinterpret_cast<uint32_t>(new_arg0_data);
+    } else {
+        arg0_struct[1] = 0;
+    }
+}
+
 } // extern "C"
