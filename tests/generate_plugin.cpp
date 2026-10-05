@@ -10,7 +10,7 @@ using namespace cerridwen::meta_impl;
 // Plugin-exported classes: WASM exports (plugin side) + trampolines (host side).
 #define PLUGIN_CLASSES(X) \
     X(MathPlugin) X(Shape) X(Rect) X(Square) X(Walker) X(Swimmer) X(Duck) \
-    X(Entity) X(Named) X(Tagged) X(Widget) X(Bird) X(Thrower) X(MemoryProbe) X(StorageClient) X(ContainerPlugin)
+    X(Entity) X(Named) X(Tagged) X(Widget) X(Bird) X(Thrower) X(MemoryProbe) X(StorageClient) X(ContainerPlugin) X(AtomicPlugin)
 
 // Host-exported classes: proxies (plugin side) + wasm3 bindings (host side).
 #define HOST_CLASSES(X) X(LoggerHost) X(Calculator) X(Animal)

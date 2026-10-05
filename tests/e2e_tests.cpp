@@ -316,6 +316,59 @@ TEST(CerridwenE2E, CrashMemoryAccess) {
     EXPECT_EQ(*s, 42);
 }
 
+#include <thread>
+#include <atomic>
+
+TEST(CerridwenE2E, MultithreadingSafety) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("MathPlugin_create");
+    MathPlugin_Trampoline plugin;
+    plugin._wasm_instance = instance.get();
+    plugin._wasm_ptr = ptr;
+
+    auto worker = [&]() {
+        for (int i = 0; i < 1000; i++) {
+            plugin.increment();
+        }
+    };
+
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 10; i++) {
+        threads.emplace_back(worker);
+    }
+    for (auto& t : threads) t.join();
+
+    plugin.sync_counter();
+    EXPECT_EQ(plugin.counter, 10000);
+}
+
+TEST(CerridwenE2E, CrossDomainAtomics) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("AtomicPlugin_create");
+    AtomicPlugin_Trampoline plugin;
+    plugin._wasm_instance = instance.get();
+    plugin._wasm_ptr = ptr;
+
+    uint32_t wasm_ptr = plugin.get_atomic_ptr();
+    cerridwen::HostCrossDomainAtomic<int> host_atomic(instance.get(), wasm_ptr);
+
+    auto host_worker = [&]() {
+        for (int i = 0; i < 10000; i++) {
+            host_atomic.fetch_add(1);
+        }
+    };
+
+    std::thread t1(host_worker);
+    
+    // Concurrently, run in plugin
+    plugin.increment_in_plugin(10000);
+
+    t1.join();
+
+    EXPECT_EQ(plugin.get_counter(), 20000);
+    EXPECT_EQ(host_atomic.load(), 20000);
+}
+
 TEST(CerridwenE2E, MemoryLimitsAndGrowth) {
     auto initial_instance = std::make_unique<Wasm3Instance>(get_wasm_path());
     int initial_pages = initial_instance->memory_bytes() / 65536;

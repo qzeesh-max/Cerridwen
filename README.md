@@ -18,8 +18,10 @@ We chose this name because the framework acts as a modern cauldron of transforma
 * **Full Inheritance Support**: Natively supports Single Inheritance, Multiple Inheritance, and Virtual Inheritance across the WebAssembly boundary. The framework automatically adjusts `this` pointers when dispatching calls from WASM plugins back to the host C++ objects.
 * **Virtual Method Overrides (Trampolines)**: WebAssembly plugins can subclass C++ classes and override virtual methods. When the C++ host calls a virtual method, Cerridwen's generated trampolines dynamically route the execution into the WASM sandbox and marshal the return values back.
 * **Proxy-Based Data Marshalling**: Complex C++ data members (strings, vectors, custom structs) are safely marshaled between the host and plugins using Reference Proxies and memory offset mapping, ensuring minimal allocations and robust memory bounds checking.
+* **Smart Pointer Integration**: Robustly supports passing `std::shared_ptr` across the Host-WASM boundary natively through CICO (Copy-in/Copy-out) reference mapping mechanisms.
 * **Multi-Threading & Concurrency Gating**: Since WebAssembly instances are inherently single-threaded, Cerridwen provides multi-threading models (`[[=cerridwen::thread_safe{}]]`) to safely gate, lock, and serialize access when multiple native C++ threads invoke WebAssembly plugins concurrently.
-* **Test-Driven Design**: Built with rigorous TDD principles to guarantee absolute memory safety when bridging native C++ with sandboxed plugins.
+* **Cross-Domain Atomics**: Provides `cerridwen::CrossDomainAtomic<T>` allowing lock-free, zero-overhead atomic operations (`fetch_add`, `compare_exchange`, etc.) between concurrent C++ Host threads and the WASM plugin running in the sandbox via direct memory mapping and `std::atomic_ref`.
+* **Test-Driven Design**: Built with rigorous TDD principles to guarantee absolute memory safety when bridging native C++ with sandboxed plugins, gracefully handling WebAssembly traps, memory access violations, and exceptions.
 
 ## ⚡ Quick Start
 

@@ -31,6 +31,7 @@ public:
     virtual void call_set_int(const std::string& func_name, uint32_t ptr, int val) { throw std::runtime_error("Not implemented"); }
     virtual void read_memory(uint32_t wasm_ptr, void* dest, size_t size) { throw std::runtime_error("Not implemented"); }
     virtual void write_memory(uint32_t wasm_ptr, const void* src, size_t size) { throw std::runtime_error("Not implemented"); }
+    virtual void* get_memory_ptr(uint32_t wasm_ptr) { throw std::runtime_error("Not implemented"); }
     virtual uint32_t allocate(size_t size) { throw std::runtime_error("Not implemented"); }
     virtual void deallocate(uint32_t ptr) { throw std::runtime_error("Not implemented"); }
 

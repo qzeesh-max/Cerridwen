@@ -46,6 +46,43 @@ inline void MathPlugin::do_logging(uint64_t) {}
 #endif
 
 // =====================================================================================
+// Cross Domain Atomic Test
+// =====================================================================================
+#include <cerridwen/cross_domain_atomic.hpp>
+
+struct CERRIDWEN_EXPORT_WASM CERRIDWEN_THREAD_SAFE AtomicPlugin {
+    virtual ~AtomicPlugin() = default;
+
+    cerridwen::CrossDomainAtomic<int> counter{0};
+
+    virtual uint32_t get_atomic_ptr();
+
+    virtual void increment_in_plugin(int count);
+    
+    virtual int get_counter();
+};
+
+#ifdef __EMSCRIPTEN__
+inline uint32_t AtomicPlugin::get_atomic_ptr() {
+    return reinterpret_cast<uint32_t>(counter.ptr());
+}
+
+inline void AtomicPlugin::increment_in_plugin(int count) {
+    for (int i = 0; i < count; ++i) {
+        counter.fetch_add(1);
+    }
+}
+
+inline int AtomicPlugin::get_counter() {
+    return counter.load();
+}
+#else
+inline uint32_t AtomicPlugin::get_atomic_ptr() { return 0; }
+inline void AtomicPlugin::increment_in_plugin(int) {}
+inline int AtomicPlugin::get_counter() { return 0; }
+#endif
+
+// =====================================================================================
 // Single inheritance (abstract base -> concrete -> concrete) with virtual dispatch.
 // =====================================================================================
 struct CERRIDWEN_EXPORT_WASM Shape {

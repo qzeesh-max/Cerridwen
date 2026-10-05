@@ -295,6 +295,13 @@ public:
         std::memcpy(mem + wasm_ptr, src, size);
     }
 
+    void* get_memory_ptr(uint32_t wasm_ptr) override {
+        size_t mem_size = 0;
+        uint8_t* mem = m3_GetMemory(module, &mem_size, 0);
+        if (!mem || static_cast<uint64_t>(wasm_ptr) > mem_size) throw std::runtime_error("get_memory_ptr out of bounds");
+        return mem + wasm_ptr;
+    }
+
     uint32_t call_create(const std::string& func_name) {
         return static_cast<uint32_t>(result_i32(invoke(func_name, {})));
     }
