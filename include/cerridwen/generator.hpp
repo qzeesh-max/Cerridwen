@@ -260,6 +260,45 @@ void generate_wasm_trampoline(std::ostream& out, std::string_view class_name) {
                                     "        _wasm_instance->deallocate(" + arg_name + "_struct);\n"
                                     "        _wasm_instance->deallocate(" + arg_name + "_data);\n"
                                     "        if (new_" + arg_name + "_data != " + arg_name + "_data) _wasm_instance->deallocate(new_" + arg_name + "_data);\n";
+                            } else if (p_type.find("std::shared_ptr") != std::string::npos) {
+                                serialize_pre_call += 
+                                    "        using BaseT_" + arg_name + " = std::remove_reference_t<decltype(" + arg_name + ")>;\n"
+                                    "        using ValT_" + arg_name + " = BaseT_" + arg_name + "::element_type;\n"
+                                    "        uint32_t " + arg_name + "_struct = _wasm_instance->allocate(8);\n"
+                                    "        uint32_t " + arg_name + "_is_null = (" + arg_name + " == nullptr);\n"
+                                    "        uint32_t " + arg_name + "_data = 0;\n"
+                                    "        if (!" + arg_name + "_is_null) {\n"
+                                    "            " + arg_name + "_data = _wasm_instance->allocate(sizeof(ValT_" + arg_name + "));\n"
+                                    "            _wasm_instance->write_memory(" + arg_name + "_data, " + arg_name + ".get(), sizeof(ValT_" + arg_name + "));\n"
+                                    "        }\n"
+                                    "        _wasm_instance->write_memory(" + arg_name + "_struct, &" + arg_name + "_is_null, 4);\n"
+                                    "        _wasm_instance->write_memory(" + arg_name + "_struct + 4, &" + arg_name + "_data, 4);\n"
+                                    "        _args.push_back(std::to_string(" + arg_name + "_struct));\n";
+
+                                serialize_post_call +=
+                                    "        uint32_t new_" + arg_name + "_is_null = 0;\n"
+                                    "        uint32_t new_" + arg_name + "_data = 0;\n"
+                                    "        _wasm_instance->read_memory(" + arg_name + "_struct, &new_" + arg_name + "_is_null, 4);\n"
+                                    "        _wasm_instance->read_memory(" + arg_name + "_struct + 4, &new_" + arg_name + "_data, 4);\n"
+                                    "        if (new_" + arg_name + "_is_null) {\n"
+                                    "            " + arg_name + " = nullptr;\n"
+                                    "        } else {\n"
+                                    "            if (" + arg_name + " == nullptr) " + arg_name + " = std::make_shared<ValT_" + arg_name + ">();\n"
+                                    "            _wasm_instance->read_memory(new_" + arg_name + "_data, " + arg_name + ".get(), sizeof(ValT_" + arg_name + "));\n"
+                                    "            _wasm_instance->deallocate(new_" + arg_name + "_data);\n"
+                                    "        }\n"
+                                    "        _wasm_instance->deallocate(" + arg_name + "_struct);\n"
+                                    "        if (" + arg_name + "_data && " + arg_name + "_data != new_" + arg_name + "_data) _wasm_instance->deallocate(" + arg_name + "_data);\n";
+                            } else if (p_type.find("&") != std::string::npos) {
+                                serialize_pre_call += 
+                                    "        using BaseT_" + arg_name + " = std::remove_reference_t<decltype(" + arg_name + ")>;\n"
+                                    "        uint32_t " + arg_name + "_ptr = _wasm_instance->allocate(sizeof(BaseT_" + arg_name + "));\n"
+                                    "        _wasm_instance->write_memory(" + arg_name + "_ptr, &" + arg_name + ", sizeof(BaseT_" + arg_name + "));\n"
+                                    "        _args.push_back(std::to_string(" + arg_name + "_ptr));\n";
+
+                                serialize_post_call +=
+                                    "        _wasm_instance->read_memory(" + arg_name + "_ptr, &" + arg_name + ", sizeof(BaseT_" + arg_name + "));\n"
+                                    "        _wasm_instance->deallocate(" + arg_name + "_ptr);\n";
                             } else {
                                 out << "        _args.push_back(std::to_string(" << arg_name << "));\n";
                             }
@@ -441,6 +480,37 @@ void generate_wasm_exports(std::ostream& out, std::string_view class_name) {
                                 "    std::memcpy((void*)new_" + arg_name + "_data, new_" + arg_name + "_flat.data(), new_" + arg_name + "_flat.size() * sizeof(ValT_" + arg_name + "));\n"
                                 "    " + arg_name + "_struct[0] = reinterpret_cast<uint32_t>(new_" + arg_name + "_data);\n"
                                 "    " + arg_name + "_struct[1] = new_" + arg_name + "_flat.size();\n";
+                        } else if (p_type.find("std::shared_ptr") != std::string::npos) {
+                            param_list_decl += ", uint32_t " + arg_name;
+                            param_list_call += "local_" + arg_name;
+
+                            deserialize_pre_call +=
+                                "    using BaseT_" + arg_name + " = std::remove_reference_t<" + p_type + ">;\n"
+                                "    using ValT_" + arg_name + " = BaseT_" + arg_name + "::element_type;\n"
+                                "    uint32_t* " + arg_name + "_struct = reinterpret_cast<uint32_t*>(" + arg_name + ");\n"
+                                "    uint32_t " + arg_name + "_is_null = " + arg_name + "_struct[0];\n"
+                                "    uint32_t " + arg_name + "_data = " + arg_name + "_struct[1];\n"
+                                "    BaseT_" + arg_name + " local_" + arg_name + ";\n"
+                                "    if (!" + arg_name + "_is_null) {\n"
+                                "        local_" + arg_name + " = std::make_shared<ValT_" + arg_name + ">(*reinterpret_cast<ValT_" + arg_name + "*>(" + arg_name + "_data));\n"
+                                "    }\n";
+
+                            serialize_post_call +=
+                                "    " + arg_name + "_struct[0] = (local_" + arg_name + " == nullptr);\n"
+                                "    if (local_" + arg_name + ") {\n"
+                                "        ValT_" + arg_name + "* new_" + arg_name + "_data = (ValT_" + arg_name + "*) cerridwen::plugin::allocate(sizeof(ValT_" + arg_name + "));\n"
+                                "        std::memcpy((void*)new_" + arg_name + "_data, local_" + arg_name + ".get(), sizeof(ValT_" + arg_name + "));\n"
+                                "        " + arg_name + "_struct[1] = reinterpret_cast<uint32_t>(new_" + arg_name + "_data);\n"
+                                "    } else {\n"
+                                "        " + arg_name + "_struct[1] = 0;\n"
+                                "    }\n";
+                        } else if (p_type.find("&") != std::string::npos) {
+                            param_list_decl += ", uint32_t " + arg_name + "_ptr";
+                            param_list_call += "local_" + arg_name;
+                            
+                            deserialize_pre_call +=
+                                "    using BaseT_" + arg_name + " = std::remove_reference_t<" + p_type + ">;\n"
+                                "    BaseT_" + arg_name + "& local_" + arg_name + " = *reinterpret_cast<BaseT_" + arg_name + "*>(" + arg_name + "_ptr);\n";
                         } else {
                             param_list_decl += ", " + p_type + " " + arg_name;
                             param_list_call += arg_name;

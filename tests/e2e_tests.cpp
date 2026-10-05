@@ -235,6 +235,67 @@ TEST(CerridwenE2E, ContainerMarshalling) {
     EXPECT_EQ(um[100], 200);
 }
 
+TEST(CerridwenE2E, ContainerMarshallingBenchmark) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("ContainerPlugin_create");
+    ContainerPlugin_Trampoline plugin;
+    plugin._wasm_instance = instance.get();
+    plugin._wasm_ptr = ptr;
+
+    std::vector<int> vec = {1, 2, 3};
+    std::map<int, int> m = {{1, 10}, {2, 20}};
+
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 10000; ++i) {
+        vec.clear(); vec.push_back(1); vec.push_back(2); vec.push_back(3);
+        m.clear(); m[1] = 10; m[2] = 20;
+        plugin.process_containers(vec, m);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "[Benchmark] Time for 10000 container calls: " 
+              << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() 
+              << " ms\n";
+}
+
+
+TEST(CerridwenE2E, GenericReferenceMarshalling) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("ContainerPlugin_create");
+    ContainerPlugin_Trampoline plugin;
+    plugin._wasm_instance = instance.get();
+    plugin._wasm_ptr = ptr;
+
+    std::variant<int, float> v = 10;
+    DummyVisitor visitor;
+    MyFunctor functor;
+
+    plugin.process_generic_refs(v, visitor, functor);
+
+    EXPECT_EQ(std::get<int>(v), 62); // 10 * 2 (functor) + 42 = 62
+    EXPECT_EQ(visitor.visits, 2);
+
+    v = 1.0f;
+    plugin.process_generic_refs(v, visitor, functor);
+    EXPECT_FLOAT_EQ(std::get<float>(v), 4.14f);
+    EXPECT_EQ(visitor.visits, 4);
+}
+
+TEST(CerridwenE2E, SharedPtrMarshalling) {
+    auto instance = std::make_unique<Wasm3Instance>(get_wasm_path());
+    uint32_t ptr = instance->call_create("ContainerPlugin_create");
+    ContainerPlugin_Trampoline plugin;
+    plugin._wasm_instance = instance.get();
+    plugin._wasm_ptr = ptr;
+
+    std::shared_ptr<int> s;
+    plugin.process_shared_ptr(s);
+    ASSERT_TRUE(s != nullptr);
+    EXPECT_EQ(*s, 42);
+
+    plugin.process_shared_ptr(s);
+    EXPECT_EQ(*s, 52);
+}
+
 TEST(CerridwenE2E, MemoryLimitsAndGrowth) {
     auto initial_instance = std::make_unique<Wasm3Instance>(get_wasm_path());
     int initial_pages = initial_instance->memory_bytes() / 65536;

@@ -32,6 +32,10 @@ class Wasm3Instance : public WasmInstance {
     IM3Environment env = nullptr;
     IM3Runtime runtime = nullptr;
     IM3Module module = nullptr;
+    IM3Function _alloc_func = nullptr;
+    IM3Function _free_func = nullptr;
+    std::unordered_map<std::string, IM3Function> _func_cache;
+    
     std::vector<uint8_t> _wasm_bytes;
     StorageHost* _storage = nullptr;
     size_t _memory_limit = 0;
@@ -165,12 +169,18 @@ class Wasm3Instance : public WasmInstance {
 
     IM3Function invoke(const std::string& func_name, const std::vector<std::string>& args) {
         DepthGuard guard(*this);
-        IM3Function func;
-        M3Result result = m3_FindFunction(&func, runtime, func_name.c_str());
-        if (result) raise(result, "m3_FindFunction failed for " + func_name);
+        IM3Function func = nullptr;
+        auto it = _func_cache.find(func_name);
+        if (it != _func_cache.end()) {
+            func = it->second;
+        } else {
+            M3Result result = m3_FindFunction(&func, runtime, func_name.c_str());
+            if (result) raise(result, "m3_FindFunction failed for " + func_name);
+            _func_cache[func_name] = func;
+        }
         std::vector<const char*> argv;
         for (const auto& s : args) argv.push_back(s.c_str());
-        result = m3_CallArgv(func, static_cast<uint32_t>(argv.size()), argv.data());
+        M3Result result = m3_CallArgv(func, static_cast<uint32_t>(argv.size()), argv.data());
         if (result) raise(result, "m3_Call failed for " + func_name);
         return func;
     }
@@ -243,12 +253,32 @@ public:
     }
 
     uint32_t allocate(size_t size) override {
-        uint32_t ptr = static_cast<uint32_t>(result_i32(invoke("cerridwen_alloc", {std::to_string(size)})));
+        if (!_alloc_func) {
+            M3Result result = m3_FindFunction(&_alloc_func, runtime, "cerridwen_alloc");
+            if (result) throw std::runtime_error("cerridwen_alloc not found");
+        }
+        const void* args[1];
+        uint32_t arg_size = size;
+        args[0] = &arg_size;
+        DepthGuard guard(*this);
+        M3Result result = m3_Call(_alloc_func, 1, args);
+        if (result) raise(result, "cerridwen_alloc failed");
+        uint32_t ptr = static_cast<uint32_t>(result_i32(_alloc_func));
         if (ptr == 0) throw ResourceLimitError("plugin malloc failed (out of memory or limit reached)");
         return ptr;
     }
 
-    void deallocate(uint32_t ptr) override { invoke("cerridwen_free", {std::to_string(ptr)}); }
+    void deallocate(uint32_t ptr) override {
+        if (!_free_func) {
+            M3Result result = m3_FindFunction(&_free_func, runtime, "cerridwen_free");
+            if (result) throw std::runtime_error("cerridwen_free not found");
+        }
+        const void* args[1];
+        args[0] = &ptr;
+        DepthGuard guard(*this);
+        M3Result result = m3_Call(_free_func, 1, args);
+        if (result) raise(result, "cerridwen_free failed");
+    }
 
     void read_memory(uint32_t wasm_ptr, void* dest, size_t size) override {
         size_t mem_size = 0;
