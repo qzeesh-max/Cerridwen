@@ -194,6 +194,45 @@ TEST(CerridwenE2E, ContainerMarshalling) {
     EXPECT_EQ(m[1], 20);
     EXPECT_EQ(m[2], 30);
     EXPECT_EQ(m[100], 200);
+
+    // Test other containers
+    std::set<int> s = {1, 2, 3};
+    std::list<int> l = {1, 2, 3};
+    std::deque<int> d = {1, 2, 3};
+    std::unordered_set<int> us = {1, 2, 3};
+    std::unordered_map<int, int> um = {{1, 10}, {2, 20}};
+
+    plugin.process_other_containers(s, l, d, us, um);
+
+    EXPECT_EQ(s.size(), 4);
+    EXPECT_TRUE(s.find(11) != s.end());
+    EXPECT_TRUE(s.find(12) != s.end());
+    EXPECT_TRUE(s.find(13) != s.end());
+    EXPECT_TRUE(s.find(999) != s.end());
+
+    EXPECT_EQ(l.size(), 4);
+    auto it_l = l.begin();
+    EXPECT_EQ(*it_l++, 11);
+    EXPECT_EQ(*it_l++, 12);
+    EXPECT_EQ(*it_l++, 13);
+    EXPECT_EQ(*it_l++, 999);
+
+    EXPECT_EQ(d.size(), 4);
+    EXPECT_EQ(d[0], 11);
+    EXPECT_EQ(d[1], 12);
+    EXPECT_EQ(d[2], 13);
+    EXPECT_EQ(d[3], 999);
+
+    EXPECT_EQ(us.size(), 4);
+    EXPECT_TRUE(us.find(11) != us.end());
+    EXPECT_TRUE(us.find(12) != us.end());
+    EXPECT_TRUE(us.find(13) != us.end());
+    EXPECT_TRUE(us.find(999) != us.end());
+
+    EXPECT_EQ(um.size(), 3);
+    EXPECT_EQ(um[1], 20);
+    EXPECT_EQ(um[2], 30);
+    EXPECT_EQ(um[100], 200);
 }
 
 TEST(CerridwenE2E, MemoryLimitsAndGrowth) {

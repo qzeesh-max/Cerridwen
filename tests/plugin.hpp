@@ -4,6 +4,11 @@
 #include <cstring>
 #include <vector>
 #include <map>
+#include <set>
+#include <list>
+#include <deque>
+#include <unordered_map>
+#include <unordered_set>
 #include <cerridwen/annotations.hpp>
 #include <cerridwen/plugin_api.hpp>
 #include "host_classes.hpp"
@@ -296,6 +301,7 @@ struct CERRIDWEN_EXPORT_WASM ContainerPlugin {
     virtual ~ContainerPlugin() = default;
 
     virtual void process_containers(std::vector<int>& vec, std::map<int, int>& m);
+    virtual void process_other_containers(std::set<int>& s, std::list<int>& l, std::deque<int>& d, std::unordered_set<int>& us, std::unordered_map<int, int>& um);
 };
 
 #ifdef __EMSCRIPTEN__
@@ -307,6 +313,30 @@ inline void ContainerPlugin::process_containers(std::vector<int>& vec, std::map<
     }
     m[100] = 200;
 }
+
+inline void ContainerPlugin::process_other_containers(std::set<int>& s, std::list<int>& l, std::deque<int>& d, std::unordered_set<int>& us, std::unordered_map<int, int>& um) {
+    std::set<int> new_s;
+    for (auto v : s) new_s.insert(v + 10);
+    new_s.insert(999);
+    s = std::move(new_s);
+
+    for (auto it = l.begin(); it != l.end(); ++it) *it += 10;
+    l.push_back(999);
+
+    for (auto it = d.begin(); it != d.end(); ++it) *it += 10;
+    d.push_back(999);
+
+    std::unordered_set<int> new_us;
+    for (auto v : us) new_us.insert(v + 10);
+    new_us.insert(999);
+    us = std::move(new_us);
+
+    for (auto& pair : um) {
+        pair.second += 10;
+    }
+    um[100] = 200;
+}
 #else
 inline void ContainerPlugin::process_containers(std::vector<int>&, std::map<int, int>&) {}
+inline void ContainerPlugin::process_other_containers(std::set<int>&, std::list<int>&, std::deque<int>&, std::unordered_set<int>&, std::unordered_map<int, int>&) {}
 #endif
