@@ -24,12 +24,22 @@ cd ..
 
 
 
+EMXX="em++"
+if ! command -v "$EMXX" &> /dev/null; then
+    if [ -x "/Users/zeeshanqazi/.gemini/antigravity/scratch/wasm-terminal/emsdk/upstream/emscripten/em++" ]; then
+        EMXX="/Users/zeeshanqazi/.gemini/antigravity/scratch/wasm-terminal/emsdk/upstream/emscripten/em++"
+    elif [ -n "$EMSDK" ] && [ -x "$EMSDK/upstream/emscripten/em++" ]; then
+        EMXX="$EMSDK/upstream/emscripten/em++"
+    fi
+fi
+
 echo "Compiling WASM plugin..."
-/Users/zeeshanqazi/.gemini/antigravity/scratch/wasm-terminal/emsdk/upstream/emscripten/em++ \
+"$EMXX" \
     tests/plugin.cpp tests/plugin_generated.cpp \
     -o build/tests/plugin.wasm \
     -s STANDALONE_WASM=1 \
     -mno-bulk-memory \
+    -matomics \
     -Wl,--allow-undefined \
     --no-entry \
     -O0 \

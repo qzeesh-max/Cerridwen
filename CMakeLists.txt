@@ -24,6 +24,15 @@ include(FetchContent)
 add_library(cerridwen_core INTERFACE)
 target_include_directories(cerridwen_core INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+option(ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
+if(ENABLE_COVERAGE)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        message(STATUS "Enabling code coverage instrumentation")
+        target_compile_options(cerridwen_core INTERFACE --coverage -O0 -g)
+        target_link_options(cerridwen_core INTERFACE --coverage)
+    endif()
+endif()
+
 # Enable testing
 enable_testing()
 add_subdirectory(tests)

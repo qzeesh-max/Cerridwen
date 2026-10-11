@@ -492,6 +492,9 @@ TEST(CerridwenE2E, StorageSandbox) {
     EXPECT_EQ(client.try_write(3, 10), 0);
     EXPECT_EQ(client.try_write(4, 10), StorageHost::InvalidName);
     EXPECT_EQ(client.try_write(5, 10), StorageHost::InvalidName);
+
+    EXPECT_GT(client.used_bytes(), 0);
+    EXPECT_EQ(client.remove_blob(), 0);
     
     std::filesystem::remove_all(test_dir);
 }

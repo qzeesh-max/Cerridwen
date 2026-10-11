@@ -212,9 +212,10 @@ public:
 
         result = m3_LoadModule(runtime, module);
         if (result) {
-            if (result == m3Err_memoryLimitExceeded)
-                throw ResourceLimitError(std::string("plugin's initial memory exceeds host limit: ") + result);
-            throw std::runtime_error(std::string("m3_LoadModule failed: ") + result);
+            std::string err_str = result ? result : "";
+            if (result == m3Err_memoryLimitExceeded || err_str.find("out of bounds") != std::string::npos)
+                throw ResourceLimitError(std::string("plugin's initial memory exceeds host limit: ") + err_str);
+            throw std::runtime_error(std::string("m3_LoadModule failed: ") + err_str);
         }
         link_runtime_imports();
     }
@@ -228,6 +229,11 @@ public:
     }
 
     IM3Module get_module() const { return module; }
+
+    uint8_t* get_memory() const {
+        size_t sz = 0;
+        return m3_GetMemory(module, &sz, 0);
+    }
 
     // Gives the plugin access to a host-controlled storage area. Pass nullptr to revoke.
     void set_storage(StorageHost* storage) { _storage = storage; }
